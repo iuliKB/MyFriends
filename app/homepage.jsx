@@ -14,10 +14,10 @@ const Welcome = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
-          <Image
+          {/* <Image
             source={require("../assets/icons/menu_icon.png")}
             style={styles.navIcon}
-          />
+          /> */}
             
             <Text style={styles.greetingText}>
               Hi, Iulian <Text style={styles.emoji}>👋</Text>
@@ -62,6 +62,46 @@ const Welcome = () => {
             <Text style={styles.eventText}>Tudor's Birthday</Text>
           </View>
           </View>
+        </View>
+
+        {/* Wdgets setion */}
+        <View style={styles.widgetsForm}>
+          <View style={styles.squareRow}>
+              <TouchableOpacity style={styles.square}>
+              <Text style={styles.widgetTitle}>Quick Actions</Text>
+                {/* Component 1: Create an Event */}
+                    <View style={styles.actionItem}>
+                      <Image
+                        source={require("../assets/icons/Calendar_Plus.png")} // Replace with the actual path for the calendar icon
+                        style={styles.actionIcon}
+                      />
+                      <Text style={styles.actionText}>Create an event</Text>
+                    </View>
+
+                    {/* Component 2: Create a Group */}
+                    <View style={styles.actionItem}>
+                      <Image
+                        source={require("../assets/icons/Message_AlertPlus.png")} // Replace with the actual path for the message icon
+                        style={styles.actionIcon}
+                      />
+                      <Text style={styles.actionText}>Create a group</Text>
+                    </View>
+
+                    {/* Component 3: Add a Task */}
+                    <View style={styles.actionItem}>
+                      <Image
+                        source={require("../assets/icons/List.png")} // Replace with the actual path for the list icon
+                        style={styles.actionIcon}
+                      />
+                      <Text style={styles.actionText}>Add a task</Text>
+                    </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.square}></TouchableOpacity>
+            </View>
+            <View style={styles.squareRow}>
+              <TouchableOpacity style={styles.square}></TouchableOpacity>
+              <TouchableOpacity style={styles.square}></TouchableOpacity>
+            </View>
         </View>
 
         {/* Bottom Navigation */}
@@ -118,6 +158,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     marginTop: hp(4),
   },
+  menuIcon: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    width: 28,
+    height: 28,
+    resizeMode: "contain",
+  },
   greetingContainer: {
     flex: 1,
   },
@@ -168,7 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    height: hp(8), // Bar height
+    height: hp(7), // Bar height
     backgroundColor: "rgba(255, 255, 255, 0.4)", // Background color
     borderRadius: 50, // Rounded corners
     position: "absolute",
@@ -210,4 +258,56 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
+  widgetsForm: {
+    marginTop: hp(2),
+    paddingHorizontal: wp(4),
+  },
+  squareRow: {
+    flexDirection: "row", // Arrange squares in a row
+    justifyContent: "space-between", // Space them evenly
+    marginBottom: hp(1), // Space between rows
+  },
+  square: {
+    width: wp(45), // Each square is 40% of the screen width
+    height: wp(45), // Make it a square (same as width)
+    backgroundColor: "#E3D9D9", // Light pink color
+    borderRadius: 35, // Rounded corners
+    shadowColor: "#000", // Add shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Shadow for Android
+  },
+
+    firstSquare: {
+      backgroundColor: "#FF8FAB",
+    },
+    widgetTitle: {
+      alignItems: "center",
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "black",
+      marginBottom: 10, // Space below the title
+    },
+    actionItem: {
+      flexDirection: "row", // Align icon and text horizontally
+      alignItems: "center",
+      marginBottom: 10, // Space between items
+    },
+    actionIcon: {
+      width: 24,
+      height: 24,
+      resizeMode: "contain",
+      marginRight: 8, // Space between icon and text
+    },
+    actionText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: "#black", // White text color
+      flex: 1, // Ensures the text takes up remaining space
+      textAlign: "left", // Aligns text to the left
+    },
+
+  
+
 });
