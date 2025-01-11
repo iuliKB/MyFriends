@@ -1,8 +1,11 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity,ImageBackground } from "react-native";
 import React from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { hp, wp } from "../helpers/common";
 import { LinearGradient } from "expo-linear-gradient";
+import { theme } from "../constants/theme";
+import { router } from "expo-router";
+
 
 const Welcome = () => {
   return (
@@ -96,11 +99,58 @@ const Welcome = () => {
                       <Text style={styles.actionText}>Add a task</Text>
                     </View>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.square}></TouchableOpacity>
+              <TouchableOpacity style={styles.square}>
+                <Text style={styles.widgetTitle}>Tasks</Text>
+                  <View style={styles.actionItem}>
+                    <Image
+                        source={require("../assets/icons/squareT.png")}
+                        style={styles.actionIcon}
+                    />
+                    <Text style={styles.actionText}>Buy cake for  Tudor</Text>
+                  </View>
+                  <View style={styles.actionItem}>
+                    <Image
+                        source={require("../assets/icons/squareT.png")}
+                        style={styles.actionIcon}
+                    />
+                    <Text style={styles.actionText}>Reserve a table</Text>
+                  </View>
+                  <View style={styles.actionItem}>
+                    <Image
+                        source={require("../assets/icons/squareT.png")}
+                        style={styles.actionIcon}
+                    />
+                    <Text style={styles.actionText}>Add Task</Text>
+                  </View>
+
+
+              </TouchableOpacity>
             </View>
             <View style={styles.squareRow}>
-              <TouchableOpacity style={styles.square}></TouchableOpacity>
-              <TouchableOpacity style={styles.square}></TouchableOpacity>
+              <TouchableOpacity style={styles.square}>
+                <ImageBackground
+                  source={require("../assets/images/Timisoara.png")} // Replace with the actual map image path
+                  style={styles.mapBackground}
+                  imageStyle={{ borderRadius: 35 }} // Ensures the image has rounded corners
+                  resizeMode="cover"
+                > 
+                <Image
+                  source={require("../assets/icons/location_dot.png")} // Path to the blue dot image
+                  style={styles.locationDot}
+                />
+                <Text style={styles.nearestLoc}>Nearest Location</Text>
+                </ImageBackground>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.square}>
+              <ImageBackground
+                  source={require("../assets/images/memories.png")} // Replace with the actual map image path
+                  style={styles.mapBackground}
+                  imageStyle={{ borderRadius: 35 }} // Ensures the image has rounded corners
+                  resizeMode="cover"
+                > 
+                <Text style={{ position: "absolute",top: 10,alignSelf: "center",fontSize: 16,fontWeight: theme.fonts.semibold,color: "black",}}>Memories</Text>
+              </ImageBackground>
+              </TouchableOpacity>
             </View>
         </View>
 
@@ -112,7 +162,9 @@ const Welcome = () => {
               style={styles.navIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("friends")}
+          >
             <View>
               <Image
                 source={require("../assets/icons/friends_icon.png")}
@@ -268,31 +320,38 @@ const styles = StyleSheet.create({
     marginBottom: hp(1), // Space between rows
   },
   square: {
-    width: wp(45), // Each square is 40% of the screen width
-    height: wp(45), // Make it a square (same as width)
-    backgroundColor: "#E3D9D9", // Light pink color
+    width: wp(45), // 45% of the screen width
+    height: wp(45), // Square size, matching width
+    backgroundColor: "#E3D9D9", // Background color
     borderRadius: 35, // Rounded corners
-    shadowColor: "#000", // Add shadow for iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3, // Shadow for Android
+    justifyContent: "center", // Centers content inside
+    alignItems: "center", // Centers content inside
+    overflow: "hidden", // Ensures the content doesn't spill outside
+    elevation: 3, // Add shadow for Android
+    shadowOpacity: 0.1, // Add shadow for iOS
   },
-
-    firstSquare: {
-      backgroundColor: "#FF8FAB",
-    },
+  
+  mapBackground: {
+    width: "100%", // Full width of the square
+    height: "100%", // Full height of the square
+    justifyContent: "center", // Centers text inside the image
+    alignItems: "center", // Centers text inside the image
+    borderRadius: 35, // Match the square's rounded corners
+  },
+  
     widgetTitle: {
       alignItems: "center",
       fontSize: 16,
       fontWeight: "bold",
       color: "black",
-      marginBottom: 10, // Space below the title
+      marginBottom: 20, // Space below the title
+      //margintTop: 10,
     },
     actionItem: {
       flexDirection: "row", // Align icon and text horizontally
       alignItems: "center",
       marginBottom: 10, // Space between items
+      paddingLeft: 20,
     },
     actionIcon: {
       width: 24,
@@ -303,9 +362,26 @@ const styles = StyleSheet.create({
     actionText: {
       fontSize: 14,
       fontWeight: "600",
-      color: "#black", // White text color
+      color: "black", // White text color
       flex: 1, // Ensures the text takes up remaining space
       textAlign: "left", // Aligns text to the left
+    },
+    locationDot: {
+      position: "absolute", // Allows the dot to float on top of the map
+      top: "40%", // Adjust to center vertically on the map
+      left: "30%", // Adjust to center horizontally on the map
+      transform: [{ translateX: -10 }, { translateY: -10 }], // Centers the dot
+      width: 100, // Width of the dot
+      height: 100, // Height of the dot
+      resizeMode: "contain", // Ensures the image scales properly
+    },
+    nearestLoc:{
+      position: "absolute",
+      top: 10, // Distance from the top of the map
+      alignSelf: "center", // Center text horizontally
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "black",
     },
 
   
