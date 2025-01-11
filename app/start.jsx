@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   appButtonText: {
     fontSize: 18,
-    color: theme.colors.dark,
+    color: theme.colors.darkLight,
     fontWeight: "600",
     textAlign: "center",
   },

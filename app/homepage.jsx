@@ -7,7 +7,7 @@ import { theme } from "../constants/theme";
 import { router } from "expo-router";
 
 
-const Welcome = () => {
+const HomePage = () => {
   return (
     <LinearGradient
       colors={["#FFBE98", "#FF8FAB"]}
@@ -156,7 +156,7 @@ const Welcome = () => {
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("homepage")}>
             <Image
               source={require("../assets/icons/home_icon.png")}
               style={styles.navIcon}
@@ -173,19 +173,19 @@ const Welcome = () => {
               <View style={styles.notificationBadge} />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("map")}>
             <Image
               source={require("../assets/icons/globe_icon.png")}
               style={styles.globeIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("calendar")}>
             <Image
               source={require("../assets/icons/calendar_icon.png")}
               style={styles.navIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("myaccount")}>
             <Image
               source={require("../assets/icons/profile_icon.png")}
               style={styles.navIcon}
@@ -197,7 +197,7 @@ const Welcome = () => {
   );
 };
 
-export default Welcome;
+export default HomePage;
 
 const styles = StyleSheet.create({
   gradientBackground: {

@@ -8,7 +8,7 @@ import { theme } from "../constants/theme";
 
 const Friends = () => {
   // State to track which tab is active
-  const [activeTab, setActiveTab] = useState('friends');
+  const [activeTab, setActiveTab] = useState('chat');
 
   return (
     <>
@@ -63,11 +63,10 @@ const Friends = () => {
               <Text style={styles.tabText}>Friends</Text>
             </View>
           </TouchableOpacity>
+
         </View>
 
-        
-
-        <Text style={styles.title}>Friends!</Text>
+        <Text style={styles.title}>Chat!</Text>
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
