@@ -1,12 +1,25 @@
 import { router } from "expo-router";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { app } from "../firebaseConfig.js";
 import { hp, wp } from "../helpers/common";
+import { useState } from "react";
 
 const Signin = () => {
+  const [data, setData] = useState({
+    "email": "",
+    "password": ""
+  })
+
   const handleLogin = () => {
     // Handle login logic
-    router.push("homepage");
+    const auth = getAuth(app)
+    signInWithEmailAndPassword(auth,data.email,data.password)
+    .then((res) => {
+      router.push("homepage");
+    })
+    .catch((err) => console.log("SignIn Error: " + err))
   };
 
   return (
@@ -26,12 +39,22 @@ const Signin = () => {
             placeholderTextColor="#aaa"
             keyboardType="email-address"
             style={styles.input}
+            value={data.email}
+            onChangeText={(value => setData({
+              ...data,
+              "email": value
+            }))}
           />
           <TextInput
             placeholder="Password"
             placeholderTextColor="#aaa"
             secureTextEntry={true}
             style={styles.input}
+            value={data.password}
+            onChangeText={(value => setData({
+              ...data,
+              "password": value
+            }))}
           />
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Log In</Text>

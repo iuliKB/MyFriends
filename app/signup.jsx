@@ -108,17 +108,36 @@
 //     },
 // });
 
-import { router } from "expo-router";
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { app } from "../firebaseConfig.js";
 import { hp, wp } from "../helpers/common";
+import { useState } from "react";
 
 
 
 const Signup = () => {
+    const [data, setData] = useState({
+        email: "",
+        username: "",
+        phone: "",
+        password: "",
+    })
+
   const handleRegister = () => {
     // Navigate to homepage after successful registration
-    router.push("homepage");
+    const auth = getAuth(app);
+    createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+    )
+    .then((res) => {
+        router.push("homepage");
+    })
+    .catch((err) => console.log("SignUp Error: " + err));
   };
 
   return (
@@ -139,23 +158,43 @@ const Signup = () => {
             placeholderTextColor="#aaa"
             keyboardType="email-address"
             style={styles.input}
+            value={data.email}
+            onChangeText={value => setData({
+                ...data,
+                "email": value
+            })}
           />
           <TextInput
             placeholder="Username"
             placeholderTextColor="#aaa"
             style={styles.input}
+            value={data.username}
+            onChangeText={value => setData({
+                ...data,
+                "username": value
+            })}
           />
           <TextInput
             placeholder="Phone number"
             placeholderTextColor="#aaa"
             keyboardType="phone-pad"
             style={styles.input}
+            value={data.phone}
+            onChangeText={value => setData({
+                ...data,
+                "phone": value
+            })}
           />
           <TextInput
             placeholder="Password"
             placeholderTextColor="#aaa"
             secureTextEntry
             style={styles.input}
+            value={data.password}
+            onChangeText={value => setData({
+                ...data,
+                "password": value
+            })}
           />
           <TouchableOpacity style={styles.button} onPress={handleRegister}>
             <Text style={styles.buttonText}>Create account</Text>

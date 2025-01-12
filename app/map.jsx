@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 import MapView from 'react-native-maps';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import * as Location from 'expo-location';
 
 const INITIAL_REGION = {
@@ -17,6 +17,9 @@ const INITIAL_REGION = {
 const MapScreen = () => {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [region, setRegion] = useState(INITIAL_REGION);
+  
+  const mapRef = useRef(null); // Create a reference for the MapView
 
   useEffect(() => {
     (async () => {
@@ -32,11 +35,28 @@ const MapScreen = () => {
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,
         });
+        setRegion({
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        });
       } catch (error) {
         setErrorMsg("An error occurred while fetching location.");
       }
     })();
   }, []);
+
+  const handleCenterLocation = () => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }, 1000); // Animate to the new region with a duration of 1000ms (1 second)
+    }
+  };
 
   if (!location && !errorMsg) {
     return (
@@ -51,14 +71,8 @@ const MapScreen = () => {
       <LinearGradient colors={["#FFD6A5", "#FF8FAB"]} style={styles.gradientBackground}>
         <View style={styles.container}>
           <MapView
-            region={location
-              ? {
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }
-              : INITIAL_REGION}
+            ref={mapRef} // Assign the reference to the MapView
+            region={region}
             style={styles.map}
             showsUserLocation={true}
             showsMyLocationButton={true}
@@ -68,6 +82,16 @@ const MapScreen = () => {
             placeholder="Search location"
             placeholderTextColor="#888"
           />
+          {/* Center Button */}
+          <TouchableOpacity
+            onPress={handleCenterLocation}
+            style={styles.centerButton}
+          >
+            <Image 
+              source={require("../assets/icons/centerbutton.png")} 
+              style={styles.centerButtonImage} // Apply custom styling for the image
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.bottomNavigation}>
           <TouchableOpacity onPress={() => router.push("homepage")}>
@@ -116,6 +140,21 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingLeft: wp(4),
     fontSize: hp(2),
+  },
+  centerButton: {
+    position: "absolute",
+    bottom: hp(10),
+    right: wp(5),
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 30,
+    padding: hp(2),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  centerButtonImage: {
+    width: 40, // Adjust size as needed
+    height: 40, // Adjust size as needed
+    resizeMode: "contain", // Ensures the image doesn't stretch
   },
   bottomNavigation: {
     flexDirection: "row",
