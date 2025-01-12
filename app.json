@@ -9,13 +9,23 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyAy5r5d-jML4kHJH5PoaeSoIXfhVKmfwLQ"
+      },
+      "bundleIdentifier": "com.iulikb.myfriends"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAy5r5d-jML4kHJH5PoaeSoIXfhVKmfwLQ"
+        }
+      },
+      "package": "com.iulikb.myfriends"
     },
     "web": {
       "bundler": "metro",
@@ -32,10 +42,24 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3dccbda8-9b82-4963-ad73-7c393c6f77b7"
+      }
     }
   }
 }
