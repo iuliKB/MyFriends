@@ -33,13 +33,18 @@ const Calendar = () => {
   ];
 
   return (
-    <ScreenWrapper bg="#FEc195">
+    <LinearGradient
+    colors={["#fbae52","#dd528d", "#ff8c79"]}
+    style={styles.container}
+  >
+    <ScreenWrapper>
       {/* Background Gradient */}
       <LinearGradient
-        colors={["#fbae52","#dd528d", "#ff8c79"]}
-        style={styles.backgroundGradient}
-      />
-      
+    // 
+    colors={["#73d1d3", "#badcc3", "#dba380"]}
+    style={styles.backgroundGradient}
+  >
+      </LinearGradient>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.arrowIcon}>
@@ -160,6 +165,7 @@ const Calendar = () => {
         </TouchableOpacity>
       </View>
     </ScreenWrapper>
+    </LinearGradient>
   );
 };
 export default Calendar;
@@ -167,16 +173,26 @@ export default Calendar;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FF8FAB",
+   
   },
   backgroundGradient: {
+    // position: "absolute",
+    // top: 0,
+    // left: 0,
+    // right: 0,
+    // height: hp(35), // Oval background height
+    // borderBottomLeftRadius: hp(10),
+    // borderBottomRightRadius: hp(10),
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: hp(35), // Oval background height
-    borderBottomLeftRadius: hp(10),
-    borderBottomRightRadius: hp(10),
+    height: "45%",
+    borderBottomLeftRadius: wp(100),
+    borderBottomRightRadius: wp(100),
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",
