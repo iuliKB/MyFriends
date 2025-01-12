@@ -7,19 +7,52 @@ import { theme } from "../constants/theme";
 
 const MyAccount = () => {
   return (
-    <>
-      <LinearGradient
-        colors={["#FFD6A5", "#FF8FAB"]}
-        style={styles.gradientBackground}
-      >
-        <ScreenWrapper>
-        <Text style={styles.title}>MyAccount!</Text>
+    <LinearGradient
+      colors={["#fbae52", "#dd528d", "#ff8c79"]}
+      style={styles.gradientBackground}
+    >
+      <ScreenWrapper>
+        {/* Upper Oval Section */}
+        <LinearGradient
+          colors={["#73d1d3", "#badcc3", "#dba380"]}
+          style={styles.fullScreenOval}
+        >
+          <Text style={styles.ovalText}>Profile</Text>
+        </LinearGradient>
 
-            
-    {/* Bottom Navigation */}
-    <View style={styles.bottomNavigation}>
-          <TouchableOpacity
-                onPress={() => router.push("homepage")}>
+        {/* Profile Image */}
+        <View style={styles.profileImageWrapper}>
+          <Image
+            source={require("../assets/images/avatar.png")}
+            style={styles.profileImage}
+          />
+        </View>
+
+        {/* Tabs List */}
+
+          <View style={styles.widgetsForm}>
+          <View style={styles.tabsContainer}>
+            {[
+              { title: "Edit Profile", route: "editProfile" },
+              { title: "My Wishlist", route: "wishlist" },
+              { title: "Change Password", route: "changePassword" },
+              { title: "Settings", route: "settings" },
+            ].map((tab, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.tabButton}
+                onPress={() => router.push(tab.route)}
+              >
+                <Text style={styles.tabText}>{tab.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          </View>
+
+        {/* Bottom Navigation */}
+        <View style={styles.bottomNavigation}>
+          <TouchableOpacity onPress={() => router.push("homepage")}>
             <Image
               source={require("../assets/icons/home_icon.png")}
               style={styles.navIcon}
@@ -53,9 +86,8 @@ const MyAccount = () => {
             />
           </TouchableOpacity>
         </View>
-        </ScreenWrapper>
-      </LinearGradient>
-    </>
+      </ScreenWrapper>
+    </LinearGradient>
   );
 };
 
@@ -65,64 +97,78 @@ const styles = StyleSheet.create({
   gradientBackground: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-    alignItems: "center",
+  fullScreenOval: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "35%",
+    borderBottomLeftRadius: wp(100),
+    borderBottomRightRadius: wp(100),
     justifyContent: "center",
-    paddingHorizontal: wp(4),
+    alignItems: "center",
+    overflow: "hidden",
   },
-  startImage: {
-    height: hp(40), // Adjusted to move higher
-    width: wp(80),
-    marginBottom: hp(2),
-  },
-  title: {
-    color: "#000",
+  ovalText: {
+    color: "#fff",
     fontSize: hp(3.5),
-    textAlign: "center",
     fontWeight: "bold",
-    marginBottom: hp(2), // Moved closer to buttons
-  },
-  appButtonContainer: {
-    elevation: 8,
-    backgroundColor: "#7A5AE4",
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    width: wp(70),
-    marginBottom: hp(2), // Adjust spacing between buttons
-  },
-  appButtonText: {
-    fontSize: 18,
-    color: theme.colors.dark,
-    fontWeight: "600",
     textAlign: "center",
   },
-  continueline: {
-    textAlign: "center",
-    fontSize: hp(2),
-    color: theme.colors.dark,
-    marginBottom: hp(2),
-  },
-  socialIcons: {
-    flexDirection: "row",
+  profileImageWrapper: {
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
+    overflow: "hidden",
+    borderWidth: 4,
+    borderColor: "#dd528d",
+    position: "absolute",
+    top: "25%", // Position at the end of the oval
+    alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: hp(4),
+    backgroundColor: "#eee", // Fallback background
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
-  icon: {
-    width: wp(7),
-    height: wp(7),
-    marginHorizontal: wp(2),
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
-  puchline: {
-    textAlign: "center",
-    paddingHorizontal: wp(10),
+  tabsContainer: {
+    position: "absolute", // Using absolute positioning
+    top: hp(30), // Place it closer to the circle by adjusting the top value
+    left: wp(5),
+    right: wp(5),
+  },
+  tabButton: {
+    //backgroundColor: "rgba(255, 255, 255, 0.4)",
+    //backgroundColor: "rgba(219, 163, 128, 0.8)",
+    backgroundColor: "rgba(186, 220, 195, 0.8)",
+    paddingVertical: hp(2),
+    paddingHorizontal: wp(5),
+    borderRadius: 25,
+    marginBottom: hp(1.5),
+    elevation: 3, // Shadow for Android
+    shadowColor: "#000", // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  tabText: {
     fontSize: hp(2),
+    fontWeight: "600",
     color: theme.colors.text,
-    marginBottom: hp(4), // Consistent spacing for text and button
-    fontWeight: theme.fonts.semibold,
+    textAlign: "center",
   },
+  widgetsForm: {
+    marginTop: hp(5),
+    paddingHorizontal: wp(4),
+  },  
   bottomNavigation: {
     flexDirection: "row",
     justifyContent: "space-around",
