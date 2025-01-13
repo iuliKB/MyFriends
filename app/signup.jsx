@@ -26,7 +26,7 @@ const Signup = () => {
     setError("");
 
     try {
-      await signUp(data.email, data.password);
+      await signUp(data.email, data.password, data.username, data.phone);
       router.push("homepage"); // Navigate to homepage on success
     } catch (err) {
       setError("Failed to create an account. Please try again.");

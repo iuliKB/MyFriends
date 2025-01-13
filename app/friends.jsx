@@ -1,14 +1,118 @@
-import { useState } from 'react';
-import { StyleSheet, View, Image, Text, TouchableOpacity } from "react-native";
+import { useEffect, useState } from 'react';
+import { StyleSheet, View, Image, Text, TouchableOpacity, TextInput, Alert } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { hp, wp } from "../helpers/common";
-import { theme } from "../constants/theme";
+import { firestore, auth } from '../firebaseConfig'; // Import Firestore and Auth
+import { doc, getDoc, updateDoc, arrayUnion, query, where, getDocs, collection, documentId } from 'firebase/firestore'; // Firestore functions
+
+const FriendData = ({ username }) => {
+  return(
+    <View style={styles.friendItem}>
+      <Text style={styles.friendName}>{username}</Text>
+    </View>
+  )
+}
 
 const Friends = () => {
   // State to track which tab is active
   const [activeTab, setActiveTab] = useState('friends');
+  const [usernameToAdd, setUsernameToAdd] = useState('');
+  const [userFriends, setUserFriends] = useState([]); // State to hold current user's friends
+
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (!auth.currentUser) {
+        console.error("User is not authenticated.");
+        return;
+      }
+      
+      const currentUserUID = auth.currentUser.uid;
+      console.log("Current User UID: ", currentUserUID);
+
+      try {
+        // Get current user's friends list
+        const currentUserRef = doc(firestore, "users", currentUserUID);
+        const currentUserDoc = await getDoc(currentUserRef);
+        const currentUserData = currentUserDoc.data();
+        const currentFriends = currentUserData.friends || []; // Get current friends list
+        
+        // Get Friends docs
+        const usersQuery = query(
+          collection(firestore, "users"),
+          where(documentId(), 'in', [...currentFriends])
+        );
+        const usersSnapshot = await getDocs(usersQuery);
+        const usersDocs = usersSnapshot.docs;
+        const usersData = usersDocs.map(userDoc => userDoc.data());
+        
+        setUserFriends(usersData); // Update state with friends data
+        console.log("Current Friends: ", usersData);
+      } catch (error) {
+        console.error("Error fetching friends: ", error);
+      }
+    };
+
+    fetchFriends(); // Call the async function
+  }, []);
+
+  // Function to add friend by username
+  const addFriend = async () => {
+    try {
+      // Get current user's UID
+      const currentUserUID = auth.currentUser.uid;
+
+      // Find user by username
+      const usersQuery = query(
+        collection(firestore, "users"), 
+        where("username", "==", usernameToAdd)
+      );
+      const usersSnapshot = await getDocs(usersQuery);
+      
+      if (usersSnapshot.empty) {
+        // If no user found by that username
+        Alert.alert("User not found", "No user found with that username.");
+        return;
+      }
+
+      // Get the friend details
+      const friendDoc = usersSnapshot.docs[0]; // Assuming unique username
+      const friendUID = friendDoc.id;
+
+      // Get current user's friends list
+      const currentUserRef = doc(firestore, "users", currentUserUID);
+      const currentUserDoc = await getDoc(currentUserRef);
+      const currentUserData = currentUserDoc.data();
+      const currentFriends = currentUserData.friends || []; // Get current friends list
+
+      // Check if they are already friends
+      if (currentFriends.includes(friendUID)) {
+        Alert.alert("Already Friends", "You are already friends with this user.");
+        return;
+      }
+
+      // Add the friend to the current user's friends list
+      await updateDoc(currentUserRef, {
+        friends: arrayUnion(friendUID) // Add friend UID to current user's friends array
+      });
+
+      // Add the current user to the friend's friends list (mutual friendship)
+      const friendUserRef = doc(firestore, "users", friendUID);
+      await updateDoc(friendUserRef, {
+        friends: arrayUnion(currentUserUID) // Add current user's UID to the friend's friends array
+      });
+
+      // Optionally, update the UI by adding the friend to the state
+      setUserFriends(prevFriends => [...prevFriends, friendDoc]);
+
+      Alert.alert("Success", "You have added a new friend!");
+    } catch (error) {
+      console.error("Error adding friend: ", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
+  };
+
 
   return (
     <>
@@ -68,6 +172,29 @@ const Friends = () => {
         
 
         <Text style={styles.title}>Friends!</Text>
+        {/* Friend Adding Section */}
+        <TextInput
+            style={styles.input}
+            placeholder="Enter friend's username"
+            value={usernameToAdd}
+            onChangeText={setUsernameToAdd}
+            placeholderTextColor="#999"
+        />
+          <TouchableOpacity onPress={addFriend} style={styles.addFriendButton}>
+            <Text style={styles.addFriendButtonText}>Add Friend</Text>
+          </TouchableOpacity>
+
+        {/* Friends List */}
+        <View style={styles.friendsList}>
+            <Text style={styles.title}>Friends List:</Text>
+            {userFriends?.length > 0 ? (
+                userFriends.map((friend, index) => (
+                    <FriendData key={index} username={friend.username} />
+                ))
+            ) : (
+                <Text style={styles.noFriendsText}>No friends added yet.</Text>
+            )}
+        </View>
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
@@ -116,9 +243,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp(4),
-    marginTop: hp(4),
-  },
+    marginBottom: 20,
+    },
   profileImage: {
     width: 56,
     height: 56,
@@ -208,5 +334,57 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: "red",
     borderRadius: 4,
+  },
+  input: {
+    backgroundColor: "#FFF",
+    padding: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FF6F61",
+    marginBottom: 15,
+    fontSize: 16,
+    width: "90%",
+    alignSelf: "center",
+  },
+  addFriendButton: {
+    backgroundColor: "#FF6F61",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    alignSelf: "center",
+    width: "50%",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  addFriendButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  friendsList: {
+    marginVertical: 20,
+    paddingHorizontal: wp(4),
+  },
+  friendItem: {
+    backgroundColor: "#FFF",
+    padding: 15,
+    marginVertical: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  friendName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  noFriendsText: {
+    fontSize: 16,
+    color: "#999",
+    textAlign: "center",
+    marginTop: 20,
   },
 });
