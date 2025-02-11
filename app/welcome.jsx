@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 const Welcome = () => {
   return (
     <LinearGradient
-      colors={["#FFBE98", "#FF8FAB"]}
+    colors={["#fbae52", "#dd528d", "#ff8c79"]}
       style={styles.gradientBackground}
     >
       <ScreenWrapper>

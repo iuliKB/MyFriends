@@ -117,7 +117,7 @@ const Friends = () => {
   return (
     <>
       <LinearGradient
-        colors={["#FFD6A5", "#FF8FAB"]}
+        colors={["#fbae52", "#dd528d", "#ff8c79"]}
         style={styles.gradientBackground}
       >
         <ScreenWrapper>

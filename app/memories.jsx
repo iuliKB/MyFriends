@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 
-const MyAccount = () => {
+const Memories = () => {
   return (
     <LinearGradient
       colors={["#fbae52", "#dd528d", "#ff8c79"]}
@@ -17,40 +17,11 @@ const MyAccount = () => {
           colors={["#73d1d3", "#badcc3", "#dba380"]}
           style={styles.fullScreenOval}
         >
-          <Text style={styles.ovalText}>Profile</Text>
+          <Text style={styles.ovalText}>Memories</Text>
         </LinearGradient>
 
-        {/* Profile Image */}
-        <View style={styles.profileImageWrapper}>
-          <Image
-            source={require("../assets/images/avatar.png")}
-            style={styles.profileImage}
-          />
-        </View>
 
-        {/* Tabs List */}
-
-          <View style={styles.widgetsForm}>
-          <View style={styles.tabsContainer}>
-            {[
-              { title: "Edit Profile", route: "editProfile" },
-              { title: "My Wishlist", route: "wishlist" },
-              { title: "Change Password", route: "changePassword" },
-              { title: "Settings", route: "settings" },
-              { title: "My Memories", route: "memories"},
-            ].map((tab, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.tabButton}
-                onPress={() => router.push(tab.route)}
-              >
-                <Text style={styles.tabText}>{tab.title}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          </View>
-
+  
         {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
           <TouchableOpacity onPress={() => router.push("homepage")}>
@@ -92,7 +63,7 @@ const MyAccount = () => {
   );
 };
 
-export default MyAccount;
+export default Memories;
 
 const styles = StyleSheet.create({
   gradientBackground: {

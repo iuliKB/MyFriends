@@ -10,7 +10,7 @@ import { router } from "expo-router";
 const HomePage = () => {
   return (
     <LinearGradient
-      colors={["#FFBE98", "#FF8FAB"]}
+      colors={["#fbae52", "#dd528d", "#ff8c79"]}
       style={styles.gradientBackground}
     >
       <ScreenWrapper>
@@ -127,7 +127,9 @@ const HomePage = () => {
               </TouchableOpacity>
             </View>
             <View style={styles.squareRow}>
-              <TouchableOpacity style={styles.square}>
+              <TouchableOpacity
+              onPress={()=>router.push("map")} 
+              style={styles.square}>
                 <ImageBackground
                   source={require("../assets/images/Timisoara.png")} // Replace with the actual map image path
                   style={styles.mapBackground}
@@ -141,14 +143,16 @@ const HomePage = () => {
                 <Text style={styles.nearestLoc}>Nearest Location</Text>
                 </ImageBackground>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.square}>
+              <TouchableOpacity 
+              onPress = {()=>router.push("memories")}
+              style={styles.square}>
               <ImageBackground
                   source={require("../assets/images/memories.png")} // Replace with the actual map image path
                   style={styles.mapBackground}
                   imageStyle={{ borderRadius: 35 }} // Ensures the image has rounded corners
                   resizeMode="cover"
                 > 
-                <Text style={{ position: "absolute",top: 10,alignSelf: "center",fontSize: 16,fontWeight: theme.fonts.semibold,color: "black",}}>Memories</Text>
+                <Text style={styles.nearestLoc}>Memories</Text>
               </ImageBackground>
               </TouchableOpacity>
             </View>

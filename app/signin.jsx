@@ -32,7 +32,7 @@ const Signin = () => {
 	};
 
 	return (
-		<LinearGradient colors={["#FFBE98", "#FF8FAB"]} style={styles.gradientBackground}>
+		<LinearGradient colors={["#fbae52", "#dd528d", "#ff8c79"]} style={styles.gradientBackground}>
 			<View style={styles.container}>
 				<Image source={require("../assets/images/Saly-25.png")} style={styles.image} />
 				<View style={styles.form}>

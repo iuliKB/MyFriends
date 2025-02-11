@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  Image,
-} from "react-native";
+import { StyleSheet,View,Text,TouchableOpacity,FlatList,Image,} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CalendarList } from "react-native-calendars";
 import { hp, wp } from "../helpers/common";
@@ -18,6 +11,7 @@ import ScreenWrapper from "../components/ScreenWrapper";
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [currentMonth, setCurrentMonth] = useState(moment().format("MMMM YYYY"));
+  const [activeTab, setActiveTab] = useState("Month");
 
   // Function to handle month change
   const handleMonthChange = (direction) => {
@@ -34,7 +28,7 @@ const Calendar = () => {
 
   return (
     <LinearGradient
-    colors={["#fbae52","#dd528d", "#ff8c79"]}
+    colors={["#fbae52", "#dd528d", "#ff8c79"]}
     style={styles.container}
   >
     <ScreenWrapper>
@@ -48,7 +42,11 @@ const Calendar = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.arrowIcon}>
-          <Text style={styles.arrowText}>←</Text>
+          {/* <Text style={styles.arrowText}>←</Text> */}
+          <Image
+          source={require("../assets/icons/arrow-left-large.png")}
+          style={styles.icon}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Calendar</Text>
         <View style={styles.headerIcons}>
@@ -79,13 +77,38 @@ const Calendar = () => {
       {/* Month Navigation */}
       <View style={styles.monthNavigation}>
         <TouchableOpacity onPress={() => handleMonthChange(-1)} style={styles.arrowButton}>
-          <Text style={styles.arrowText}>←</Text>
+          <Image 
+          source={require("../assets/icons/arrow-left-large.png")}
+          style={styles.icon1}
+          />
         </TouchableOpacity>
         <Text style={styles.currentMonth}>{currentMonth}</Text>
         <TouchableOpacity onPress={() => handleMonthChange(1)} style={styles.arrowButton}>
-          <Text style={styles.arrowText}>→</Text>
+          
+          <Image
+            source={require("../assets/icons/arrow-right-large.png")}
+            style={styles.icon1}
+          />
         </TouchableOpacity>
       </View>
+
+          {/* Tabs */}
+        <View
+        style ={styles.tabsContainer}>
+          {["Day","Week","Month","Year"].map((tab)=>(
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tabButton, activeTab === tab && styles.activeTab]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          ))}
+
+
+        </View>
 
       {/* Calendar */}
       <View style={styles.calendarContainer}>
@@ -127,6 +150,10 @@ const Calendar = () => {
           )}
         />
       </View>
+
+
+
+
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNavigation}>
@@ -176,13 +203,6 @@ const styles = StyleSheet.create({
    
   },
   backgroundGradient: {
-    // position: "absolute",
-    // top: 0,
-    // left: 0,
-    // right: 0,
-    // height: hp(35), // Oval background height
-    // borderBottomLeftRadius: hp(10),
-    // borderBottomRightRadius: hp(10),
     position: "absolute",
     top: 0,
     left: 0,
@@ -199,8 +219,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center", // Center items vertically within the header
     paddingHorizontal: wp(3),
-    //marginTop: hp(1), // Push the header down
-    //paddingTop: hp(1), // Extra space at the top of the header
   },
   arrowIcon: {
     padding: 8,
@@ -213,9 +231,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: hp(2.5),
-    color: "#FFF",
+    color: "#black",
     fontWeight: "bold",
-    marginTop: hp(1), // Move the title slightly down
+    marginTop: hp(2), // Move the title slightly down
   },
   headerIcons: {
     flexDirection: "row",
@@ -224,6 +242,11 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
+    marginLeft: wp(3),
+  },
+  icon1: {
+    width: 21,
+    height: 21,
     marginLeft: wp(3),
   },
   tabsContainer: {

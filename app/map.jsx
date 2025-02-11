@@ -54,7 +54,7 @@ const MapScreen = () => {
         longitude: location.longitude,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
-      }, 1000); // Animate to the new region with a duration of 1000ms (1 second)
+      }, 1000); 
     }
   };
 
