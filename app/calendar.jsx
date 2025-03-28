@@ -92,23 +92,6 @@ const Calendar = () => {
         </TouchableOpacity>
       </View>
 
-          {/* Tabs */}
-        <View
-        style ={styles.tabsContainer}>
-          {["Day","Week","Month","Year"].map((tab)=>(
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tabButton, activeTab === tab && styles.activeTab]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
-
-
-        </View>
 
       {/* Calendar */}
       <View style={styles.calendarContainer}>

@@ -32,9 +32,9 @@ const Start = () => {
             >
               <Text style={styles.appButtonText}>Login</Text>
             </TouchableOpacity>
-            <Text style={styles.continueline}>Or continue with</Text>
-            <View style={styles.socialIcons}>
-              <Image
+            {/* <Text style={styles.continueline}>Or continue with</Text> */}
+            {/* <View style={styles.socialIcons}> */}
+              {/* <Image
                 source={require("../assets/images/instagram-icon2.png")}
                 style={styles.icon}
               />
@@ -45,8 +45,8 @@ const Start = () => {
               <Image
                 source={require("../assets/images/google-icon2.png")}
                 style={styles.icon}
-              />
-            </View>
+              /> */}
+            {/* </View> */}
             <Text style={styles.puchline}>Where Every Memory Begins!</Text>
           </View>
         </ScreenWrapper>

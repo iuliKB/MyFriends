@@ -1,18 +1,17 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { 
+  StyleSheet, View, Image, Text, TextInput, TouchableOpacity, 
+  ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform, 
+  TouchableWithoutFeedback, Keyboard
+} from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "../AuthContext"; // Import useAuth to access the context
+import { useAuth } from "../AuthContext"; 
 import { hp, wp } from "../helpers/common";
 
 const Signup = () => {
-  const { signUp } = useAuth(); // Access signUp method from AuthContext
-  const [data, setData] = useState({
-    email: "",
-    username: "",
-    phone: "",
-    password: "",
-  });
+  const { signUp } = useAuth();
+  const [data, setData] = useState({ email: "", username: "", phone: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,7 +26,7 @@ const Signup = () => {
 
     try {
       await signUp(data.email, data.password, data.username, data.phone);
-      router.push("homepage"); // Navigate to homepage on success
+      router.push("homepage");
     } catch (err) {
       setError("Failed to create an account. Please try again.");
       console.log("SignUp Error: ", err);
@@ -37,59 +36,68 @@ const Signup = () => {
   };
 
   return (
-    <LinearGradient colors={["#FFD6A5", "#FF8FAB"]} style={styles.gradientBackground}>
-      <View style={styles.container}>
-        <Image style={styles.image} resizeMode="contain" source={require("../assets/images/Saly-12.png")} />
-        <View style={styles.form}>
-          <Text style={styles.title}>Sign up</Text>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          <TextInput
-            placeholder="Email address"
-            placeholderTextColor="#aaa"
-            keyboardType="email-address"
-            style={styles.input}
-            value={data.email}
-            onChangeText={(value) => setData({ ...data, email: value })}
-          />
-          <TextInput
-            placeholder="Username"
-            placeholderTextColor="#aaa"
-            style={styles.input}
-            value={data.username}
-            onChangeText={(value) => setData({ ...data, username: value })}
-          />
-          <TextInput
-            placeholder="Phone number"
-            placeholderTextColor="#aaa"
-            keyboardType="phone-pad"
-            style={styles.input}
-            value={data.phone}
-            onChangeText={(value) => setData({ ...data, phone: value })}
-          />
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#aaa"
-            secureTextEntry
-            style={styles.input}
-            value={data.password}
-            onChangeText={(value) => setData({ ...data, password: value })}
-          />
-          {loading ? (
-            <ActivityIndicator size="large" color="#7F56D9" />
-          ) : (
-            <TouchableOpacity style={styles.button} onPress={handleRegister}>
-              <Text style={styles.buttonText}>Create account</Text>
-            </TouchableOpacity>
-          )}
-          <Text style={styles.footerText}>
-            Already have an account?{" "}
-            <Text style={styles.link} onPress={() => router.push("signin")}>
-              Sign in
-            </Text>
-          </Text>
-        </View>
-      </View>
-    </LinearGradient>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <LinearGradient colors={["#fbae52", "#dd528d", "#ff8c79"]} style={styles.gradientBackground}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"} 
+          style={{ flex: 1 }}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+              <Image style={styles.image} resizeMode="contain" source={require("../assets/images/Saly-12.png")} />
+              <View style={styles.form}>
+                <Text style={styles.title}>Sign up</Text>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <TextInput
+                  placeholder="Email address"
+                  placeholderTextColor="#aaa"
+                  keyboardType="email-address"
+                  style={styles.input}
+                  value={data.email}
+                  onChangeText={(value) => setData({ ...data, email: value })}
+                />
+                <TextInput
+                  placeholder="Username"
+                  placeholderTextColor="#aaa"
+                  style={styles.input}
+                  value={data.username}
+                  onChangeText={(value) => setData({ ...data, username: value })}
+                />
+                <TextInput
+                  placeholder="Phone number"
+                  placeholderTextColor="#aaa"
+                  keyboardType="phone-pad"
+                  style={styles.input}
+                  value={data.phone}
+                  onChangeText={(value) => setData({ ...data, phone: value })}
+                />
+                <TextInput
+                  placeholder="Password"
+                  placeholderTextColor="#aaa"
+                  secureTextEntry
+                  style={styles.input}
+                  value={data.password}
+                  onChangeText={(value) => setData({ ...data, password: value })}
+                />
+                {loading ? (
+                  <ActivityIndicator size="large" color="#7F56D9" />
+                ) : (
+                  <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                    <Text style={styles.buttonText}>Create account</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.footerText}>
+                  Already have an account?{" "}
+                  <Text style={styles.link} onPress={() => router.push("signin")}>
+                    Sign in
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
   );
 };
 

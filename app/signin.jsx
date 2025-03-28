@@ -1,77 +1,88 @@
 import React, { useState } from "react";
+import { 
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Image, 
+  ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform, 
+  TouchableWithoutFeedback, Keyboard 
+} from "react-native";
 import { router } from "expo-router";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../AuthContext";
 import { hp, wp } from "../helpers/common";
 
 const Signin = () => {
-	const { signIn } = useAuth(); // Get the signIn function from AuthContext
-	const [data, setData] = useState({ email: "", password: "" });
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState("");
+  const { signIn } = useAuth();
+  const [data, setData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-	const handleLogin = async () => {
-		if (!data.email || !data.password) {
-			setError("Please enter both email and password.");
-			return;
-		}
+  const handleLogin = async () => {
+    if (!data.email || !data.password) {
+      setError("Please enter both email and password.");
+      return;
+    }
 
-		setLoading(true);
-		setError("");
+    setLoading(true);
+    setError("");
 
-		try {
-			await signIn(data.email, data.password);
-			router.push("homepage");
-		} catch (err) {
-			setError("Invalid email or password. Please try again.");
-			console.log("SignIn Error: ", err);
-		} finally {
-			setLoading(false);
-		}
-	};
+    try {
+      await signIn(data.email, data.password);
+      router.push("homepage");
+    } catch (err) {
+      setError("Invalid email or password. Please try again.");
+      console.log("SignIn Error: ", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	return (
-		<LinearGradient colors={["#fbae52", "#dd528d", "#ff8c79"]} style={styles.gradientBackground}>
-			<View style={styles.container}>
-				<Image source={require("../assets/images/Saly-25.png")} style={styles.image} />
-				<View style={styles.form}>
-					<Text style={styles.title}>Sign in</Text>
-					{error ? <Text style={styles.errorText}>{error}</Text> : null}
-					<TextInput
-						placeholder="Email address"
-						placeholderTextColor="#aaa"
-						keyboardType="email-address"
-						style={styles.input}
-						value={data.email}
-						onChangeText={(value) => setData({ ...data, email: value })}
-					/>
-					<TextInput
-						placeholder="Password"
-						placeholderTextColor="#aaa"
-						secureTextEntry={true}
-						style={styles.input}
-						value={data.password}
-						onChangeText={(value) => setData({ ...data, password: value })}
-					/>
-					{loading ? (
-						<ActivityIndicator size="large" color="#7F56D9" />
-					) : (
-						<TouchableOpacity style={styles.button} onPress={handleLogin}>
-							<Text style={styles.buttonText}>Log In</Text>
-						</TouchableOpacity>
-					)}
-					<Text style={styles.footerText}>
-						Don't have an account?{" "}
-						<Text style={styles.link} onPress={() => router.push("signup")}>
-							Sign up
-						</Text>
-					</Text>
-				</View>
-			</View>
-		</LinearGradient>
-	);
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <LinearGradient colors={["#fbae52", "#dd528d", "#ff8c79"]} style={styles.gradientBackground}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
+          <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+            <View style={styles.container}>
+              <Image source={require("../assets/images/Saly-25.png")} style={styles.image} />
+              <View style={styles.form}>
+                <Text style={styles.title}>Sign in</Text>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <TextInput
+                  placeholder="Email address"
+                  placeholderTextColor="#aaa"
+                  keyboardType="email-address"
+                  style={styles.input}
+                  value={data.email}
+                  onChangeText={(value) => setData({ ...data, email: value })}
+                />
+                <TextInput
+                  placeholder="Password"
+                  placeholderTextColor="#aaa"
+                  secureTextEntry={true}
+                  style={styles.input}
+                  value={data.password}
+                  onChangeText={(value) => setData({ ...data, password: value })}
+                />
+                {loading ? (
+                  <ActivityIndicator size="large" color="#7F56D9" />
+                ) : (
+                  <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                    <Text style={styles.buttonText}>Log In</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.footerText}>
+                  Don't have an account?{" "}
+                  <Text style={styles.link} onPress={() => router.push("signup")}>
+                    Sign up
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
+  );
 };
+
 
 const styles = StyleSheet.create({
 	gradientBackground: { flex: 1 },
