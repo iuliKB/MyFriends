@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Image, Text, TouchableOpacity, Alert } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -6,6 +6,26 @@ import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 
 const MyAccount = () => {
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Logout", 
+          onPress: () => {
+            // Here you would typically also clear any user authentication state/tokens
+            router.replace("/signin"); // Replace so user can't navigate back
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <LinearGradient
       colors={["#fbae52", "#dd528d", "#ff8c79"]}
@@ -29,8 +49,7 @@ const MyAccount = () => {
         </View>
 
         {/* Tabs List */}
-
-          <View style={styles.widgetsForm}>
+        <View style={styles.widgetsForm}>
           <View style={styles.tabsContainer}>
             {[
               { title: "Edit Profile", route: "editProfile" },
@@ -38,18 +57,18 @@ const MyAccount = () => {
               { title: "Change Password", route: "changePassword" },
               { title: "Settings", route: "settings" },
               { title: "My Memories", route: "memories"},
+              { title: "Logout", route: null, isLogout: true }, // Added logout option
             ].map((tab, index) => (
               <TouchableOpacity
                 key={index}
-                style={styles.tabButton}
-                onPress={() => router.push(tab.route)}
+                style={[styles.tabButton, tab.isLogout && styles.logoutButton]}
+                onPress={() => tab.isLogout ? handleLogout() : router.push(tab.route)}
               >
-                <Text style={styles.tabText}>{tab.title}</Text>
+                <Text style={[styles.tabText, tab.isLogout && styles.logoutText]}>{tab.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
-
-          </View>
+        </View>
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
@@ -124,11 +143,11 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: "#dd528d",
     position: "absolute",
-    top: "25%", // Position at the end of the oval
+    top: "25%",
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#eee", // Fallback background
+    backgroundColor: "#eee",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -141,30 +160,34 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   tabsContainer: {
-    position: "absolute", // Using absolute positioning
-    top: hp(30), // Place it closer to the circle by adjusting the top value
+    position: "absolute",
+    top: hp(30),
     left: wp(5),
     right: wp(5),
   },
   tabButton: {
-    //backgroundColor: "rgba(255, 255, 255, 0.4)",
-    //backgroundColor: "rgba(219, 163, 128, 0.8)",
     backgroundColor: "rgba(186, 220, 195, 0.8)",
     paddingVertical: hp(2),
     paddingHorizontal: wp(5),
     borderRadius: 25,
     marginBottom: hp(1.5),
-    elevation: 3, // Shadow for Android
-    shadowColor: "#000", // Shadow for iOS
+    elevation: 3,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+  },
+  logoutButton: {
+    backgroundColor: "rgba(255, 100, 100, 0.8)", // Different color for logout
   },
   tabText: {
     fontSize: hp(2),
     fontWeight: "600",
     color: theme.colors.text,
     textAlign: "center",
+  },
+  logoutText: {
+    color: "#fff", // White text for better contrast
   },
   widgetsForm: {
     marginTop: hp(5),
@@ -174,27 +197,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    height: hp(7), // Bar height
-    backgroundColor: "rgba(255, 255, 255, 0.4)", // Background color
-    borderRadius: 50, // Rounded corners
+    height: hp(7),
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    borderRadius: 50,
     position: "absolute",
-    bottom: hp(2.5), // Space from the bottom of the screen
-    width: "90%", // Make the width smaller to leave space on the sides
-    alignSelf: "center", // Ensures the bar is centered horizontally
-    paddingHorizontal: wp(4), // Padding for internal content
-    shadowColor: "#000", // Shadow color
-    shadowOffset: { width: 0, height: 2 }, // Shadow offset
-    shadowOpacity: 0.1, // Shadow opacity
-    shadowRadius: 6, // Shadow spread
-    elevation: 5, // Android shadow
-},
+    bottom: hp(2.5),
+    width: "90%",
+    alignSelf: "center",
+    paddingHorizontal: wp(4),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+  },
   navIcon: {
     width: 28,
     height: 28,
     resizeMode: "contain",
   },
   globeIcon: {
-    fontSize: 30, // Larger size for the globe icon
+    fontSize: 30,
     color: "black",
   },
   notificationBadge: {
@@ -207,6 +230,3 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
 });
-
-
-
