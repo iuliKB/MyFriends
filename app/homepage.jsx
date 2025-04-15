@@ -1,13 +1,125 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity,ImageBackground } from "react-native";
-import React from "react";
+import { StyleSheet, Text, View, Image, TouchableOpacity, ImageBackground, ActivityIndicator, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { hp, wp } from "../helpers/common";
 import { LinearGradient } from "expo-linear-gradient";
 import { theme } from "../constants/theme";
 import { router } from "expo-router";
-
+import { useAuth } from "../AuthContext";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { firestore } from "../firebaseConfig";
 
 const HomePage = () => {
+  const { user, userProfile, loading, updateUserProfile } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch user's events and tasks
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Fetch user's events
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // Assuming events and tasks are stored in the user document
+          setEvents(userData.events || []);
+          setTasks(userData.tasks || []);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [user]);
+
+  // Add a new event
+  const addEvent = async (eventTitle) => {
+    if (!user) return;
+    
+    try {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      
+      // Create a new event object
+      const newEvent = {
+        id: Date.now().toString(),
+        title: eventTitle,
+        createdAt: new Date(),
+        completed: false
+      };
+      
+      // Add the event to the user's events array
+      await updateDoc(userDocRef, {
+        events: arrayUnion(newEvent)
+      });
+      
+      // Update local state
+      setEvents([...events, newEvent]);
+      
+      Alert.alert("Success", "Event added successfully!");
+    } catch (error) {
+      console.error("Error adding event:", error);
+      Alert.alert("Error", "Failed to add event. Please try again.");
+    }
+  };
+
+  // Add a new task
+  const addTask = async (taskTitle) => {
+    if (!user) return;
+    
+    try {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      
+      // Create a new task object
+      const newTask = {
+        id: Date.now().toString(),
+        title: taskTitle,
+        createdAt: new Date(),
+        completed: false
+      };
+      
+      // Add the task to the user's tasks array
+      await updateDoc(userDocRef, {
+        tasks: arrayUnion(newTask)
+      });
+      
+      // Update local state
+      setTasks([...tasks, newTask]);
+      
+      Alert.alert("Success", "Task added successfully!");
+    } catch (error) {
+      console.error("Error adding task:", error);
+      Alert.alert("Error", "Failed to add task. Please try again.");
+    }
+  };
+
+  // Show loading indicator while data is being fetched
+  if (loading || isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#dd528d" />
+      </View>
+    );
+  }
+
+  // Get user's display name (username or email)
+  const displayName = userProfile?.username || user?.email?.split('@')[0] || 'User';
+  
+  // Get user's profile picture or use default
+  const profilePicture = userProfile?.profile_picture 
+    ? { uri: userProfile.profile_picture } 
+    : require("../assets/images/profile_photo.jpg");
+
   return (
     <LinearGradient
       colors={["#fbae52", "#dd528d", "#ff8c79"]}
@@ -23,12 +135,12 @@ const HomePage = () => {
           /> */}
             
             <Text style={styles.greetingText}>
-              Hi, Iulian <Text style={styles.emoji}>👋</Text>
+              Hi, {displayName} <Text style={styles.emoji}>👋</Text>
             </Text>
             <Text style={styles.welcomeText}>Welcome back</Text>
           </View>
           <Image
-            source={require("../assets/images/profile_photo.jpg")}
+            source={profilePicture}
             style={styles.profileImage}
           />
         </View>
@@ -43,87 +155,178 @@ const HomePage = () => {
             />{" "}
             Upcoming Events
           </Text>
-          <View style={styles.eventItem}>
-            <Image
-              source={require("../assets/icons/cake_icon.png")}
-              style={styles.icon}
-            />
-            <Text style={styles.eventText}>Vlad's Birthday</Text>
-          </View>
-          <View style={styles.eventItem}>
-            <Image
-              source={require("../assets/icons/meet_icon.png")}
-              style={styles.icon}
-            />
-            <Text style={styles.eventText}>Coffee with Gabriela</Text>
-          </View>
-          <View style={styles.eventItem}>
-            <Image
-              source={require("../assets/icons/cake_icon.png")}
-              //style={styles.icon}
-            />
-            <Text style={styles.eventText}>Tudor's Birthday</Text>
-          </View>
+          
+          {events.length > 0 ? (
+            events.map((event, index) => (
+              <View key={index} style={styles.eventItem}>
+                <Image
+                  source={require("../assets/icons/cake_icon.png")}
+                  style={styles.icon}
+                />
+                <Text style={styles.eventText}>{event.title}</Text>
+              </View>
+            ))
+          ) : (
+            <>
+              <View style={styles.eventItem}>
+                <Image
+                  source={require("../assets/icons/cake_icon.png")}
+                  style={styles.icon}
+                />
+                <Text style={styles.eventText}>Vlad's Birthday</Text>
+              </View>
+              <View style={styles.eventItem}>
+                <Image
+                  source={require("../assets/icons/meet_icon.png")}
+                  style={styles.icon}
+                />
+                <Text style={styles.eventText}>Coffee with Gabriela</Text>
+              </View>
+              <View style={styles.eventItem}>
+                <Image
+                  source={require("../assets/icons/cake_icon.png")}
+                  style={styles.icon}
+                />
+                <Text style={styles.eventText}>Tudor's Birthday</Text>
+              </View>
+            </>
+          )}
           </View>
         </View>
 
-        {/* Wdgets setion */}
+        {/* Widgets section */}
         <View style={styles.widgetsForm}>
           <View style={styles.squareRow}>
               <TouchableOpacity style={styles.square}>
               <Text style={styles.widgetTitle}>Quick Actions</Text>
                 {/* Component 1: Create an Event */}
-                    <View style={styles.actionItem}>
+                    <TouchableOpacity 
+                      style={styles.actionItem}
+                      onPress={() => {
+                        Alert.prompt(
+                          "Create Event",
+                          "Enter event title:",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            { 
+                              text: "Create", 
+                              onPress: (title) => {
+                                if (title && title.trim()) {
+                                  addEvent(title.trim());
+                                }
+                              }
+                            }
+                          ],
+                          "plain-text"
+                        );
+                      }}
+                    >
                       <Image
-                        source={require("../assets/icons/Calendar_Plus.png")} // Replace with the actual path for the calendar icon
+                        source={require("../assets/icons/Calendar_Plus.png")}
                         style={styles.actionIcon}
                       />
                       <Text style={styles.actionText}>Create an event</Text>
-                    </View>
+                    </TouchableOpacity>
 
                     {/* Component 2: Create a Group */}
                     <View style={styles.actionItem}>
                       <Image
-                        source={require("../assets/icons/Message_AlertPlus.png")} // Replace with the actual path for the message icon
+                        source={require("../assets/icons/Message_AlertPlus.png")}
                         style={styles.actionIcon}
                       />
                       <Text style={styles.actionText}>Create a group</Text>
                     </View>
 
                     {/* Component 3: Add a Task */}
-                    <View style={styles.actionItem}>
+                    <TouchableOpacity 
+                      style={styles.actionItem}
+                      onPress={() => {
+                        Alert.prompt(
+                          "Add Task",
+                          "Enter task title:",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            { 
+                              text: "Add", 
+                              onPress: (title) => {
+                                if (title && title.trim()) {
+                                  addTask(title.trim());
+                                }
+                              }
+                            }
+                          ],
+                          "plain-text"
+                        );
+                      }}
+                    >
                       <Image
-                        source={require("../assets/icons/List.png")} // Replace with the actual path for the list icon
+                        source={require("../assets/icons/List.png")}
                         style={styles.actionIcon}
                       />
                       <Text style={styles.actionText}>Add a task</Text>
-                    </View>
+                    </TouchableOpacity>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.square}>
+              <TouchableOpacity 
+                style={styles.square}
+                onPress={() => router.push("tasks")}
+              >
                 <Text style={styles.widgetTitle}>Tasks</Text>
-                  <View style={styles.actionItem}>
-                    <Image
+                
+                {tasks.length > 0 ? (
+                  tasks.map((task, index) => (
+                    <View key={index} style={styles.actionItem}>
+                      <Image
                         source={require("../assets/icons/squareT.png")}
                         style={styles.actionIcon}
-                    />
-                    <Text style={styles.actionText}>Buy cake for  Tudor</Text>
-                  </View>
-                  <View style={styles.actionItem}>
-                    <Image
+                      />
+                      <Text style={styles.actionText}>{task.title}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <>
+                    <View style={styles.actionItem}>
+                      <Image
                         source={require("../assets/icons/squareT.png")}
                         style={styles.actionIcon}
-                    />
-                    <Text style={styles.actionText}>Reserve a table</Text>
-                  </View>
-                  <View style={styles.actionItem}>
-                    <Image
+                      />
+                      <Text style={styles.actionText}>Buy cake for Tudor</Text>
+                    </View>
+                    <View style={styles.actionItem}>
+                      <Image
                         source={require("../assets/icons/squareT.png")}
                         style={styles.actionIcon}
-                    />
-                    <Text style={styles.actionText}>Add Task</Text>
-                  </View>
-
-
+                      />
+                      <Text style={styles.actionText}>Reserve a table</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.actionItem}
+                      onPress={() => {
+                        Alert.prompt(
+                          "Add Task",
+                          "Enter task title:",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            { 
+                              text: "Add", 
+                              onPress: (title) => {
+                                if (title && title.trim()) {
+                                  addTask(title.trim());
+                                }
+                              }
+                            }
+                          ],
+                          "plain-text"
+                        );
+                      }}
+                    >
+                      <Image
+                        source={require("../assets/icons/squareT.png")}
+                        style={styles.actionIcon}
+                      />
+                      <Text style={styles.actionText}>Add Task</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
             <View style={styles.squareRow}>
@@ -387,7 +590,10 @@ const styles = StyleSheet.create({
       fontWeight: "bold",
       color: "black",
     },
-
-  
-
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fbae52',
+  },
 });
