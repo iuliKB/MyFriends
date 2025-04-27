@@ -31,10 +31,11 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const CalendarScreen = () => {
   const { user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
   const [currentMonth, setCurrentMonth] = useState(moment().format("MMMM YYYY"));
   const [selectedMonth, setSelectedMonth] = useState(moment());
   const [events, setEvents] = useState([]);
+  const [markedDates, setMarkedDates] = useState({});
   const [loading, setLoading] = useState(true);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
@@ -68,9 +69,35 @@ const CalendarScreen = () => {
     }
   }, [isAddModalVisible]);
 
+  // Update marked dates whenever events change
+  useEffect(() => {
+    const marks = {};
+    events.forEach(event => {
+      marks[event.date] = {
+        marked: true,
+        dotColor: '#dd528d'
+      };
+    });
+    // Add selected date marker
+    marks[selectedDate] = {
+      ...marks[selectedDate],
+      selected: true,
+      selectedColor: "#dd528d",
+    };
+    setMarkedDates(marks);
+  }, [events, selectedDate]);
+
   // Fetch events when component mounts
   useEffect(() => {
     fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup animations
+      fadeAnim.setValue(0);
+      modalAnim.setValue(0);
+    };
   }, []);
 
   // Function to handle month navigation
@@ -88,7 +115,11 @@ const CalendarScreen = () => {
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        setEvents(userData.events || []);
+        // Sort events by date
+        const sortedEvents = (userData.events || []).sort((a, b) => 
+          moment(a.date).valueOf() - moment(b.date).valueOf()
+        );
+        setEvents(sortedEvents);
       }
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -109,6 +140,12 @@ const CalendarScreen = () => {
       return;
     }
 
+    // Validate date is not in the past
+    if (moment(newEventDate).startOf('day').isBefore(moment().startOf('day'))) {
+      Alert.alert('Error', 'Cannot create events in the past');
+      return;
+    }
+
     try {
       const userRef = doc(firestore, 'users', user.uid);
       
@@ -118,14 +155,19 @@ const CalendarScreen = () => {
         date: newEventDate,
         time: newEventTime.trim(),
         description: newEventDescription.trim(),
-        createdAt: new Date()
+        createdAt: new Date().toISOString()
       };
 
       await updateDoc(userRef, {
         events: arrayUnion(newEvent)
       });
 
-      setEvents([...events, newEvent]);
+      // Update local state with sorted events
+      const updatedEvents = [...events, newEvent].sort((a, b) => 
+        moment(a.date).valueOf() - moment(b.date).valueOf()
+      );
+      setEvents(updatedEvents);
+      
       setNewEventTitle('');
       setNewEventDate('');
       setNewEventTime('');
@@ -185,38 +227,31 @@ const CalendarScreen = () => {
 
   // Function to render calendar view
   const renderCalendarView = () => {
-    const commonProps = {
-      current: selectedMonth.format('YYYY-MM-DD'),
-      markedDates: {
-        [selectedDate]: {
-          selected: true,
-          marked: true,
-          selectedColor: "#dd528d",
-        },
-      },
-      theme: {
-        calendarBackground: "rgba(255, 255, 255, 0.9)",
-        todayTextColor: "#dd528d",
-        selectedDayBackgroundColor: "#dd528d",
-        selectedDayTextColor: "#FFF",
-        monthTextColor: "#333",
-        textDayFontWeight: "500",
-        textMonthFontWeight: "bold",
-        textDayHeaderFontWeight: "500",
-        'stylesheet.calendar.header': {
-          dayTextAtIndex0: { color: '#666' },
-          dayTextAtIndex6: { color: '#666' },
-        }
-      },
-      onDayPress: (day) => {
-        setSelectedDate(day.dateString);
-        setNewEventDate(day.dateString);
-      },
-    };
-
     return (
       <Calendar
-        {...commonProps}
+        current={selectedMonth.format('YYYY-MM-DD')}
+        markedDates={markedDates}
+        theme={{
+          calendarBackground: "rgba(255, 255, 255, 0.9)",
+          todayTextColor: "#dd528d",
+          selectedDayBackgroundColor: "#dd528d",
+          selectedDayTextColor: "#FFF",
+          monthTextColor: "#333",
+          textDayFontWeight: "500",
+          textMonthFontWeight: "bold",
+          textDayHeaderFontWeight: "500",
+          dotColor: '#dd528d',
+          selectedDotColor: '#ffffff',
+          'stylesheet.calendar.header': {
+            dayTextAtIndex0: { color: '#666' },
+            dayTextAtIndex6: { color: '#666' },
+          }
+        }}
+        onDayPress={(day) => {
+          setSelectedDate(day.dateString);
+          setNewEventDate(day.dateString);
+        }}
+        enableSwipeMonths={true}
         style={styles.calendarStyle}
       />
     );
@@ -293,55 +328,30 @@ const CalendarScreen = () => {
           <ScrollView style={styles.eventsList}>
             {events.length > 0 ? (
               events.map((item) => (
-                <Animated.View 
+                <TouchableOpacity
                   key={item.id}
-                  style={[
-                    styles.eventCard,
-                    { 
-                      opacity: fadeAnim,
-                      transform: [{
-                        translateX: fadeAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [50, 0]
-                        })
-                      }]
-                    }
-                  ]}
+                  style={styles.eventItem}
+                  onPress={() => {
+                    // Handle event press
+                  }}
                 >
                   <View style={styles.eventContent}>
                     <Text style={styles.eventTitle}>{item.title}</Text>
-                    <Text style={styles.eventTime}>
-                      {formatEventDate(item.date)} {item.time}
-                    </Text>
-                    <Text style={styles.eventRelativeTime}>
-                      {getRelativeTime(item.date)}
+                    <Text style={styles.eventDate}>
+                      {moment(item.date).format("MMMM D, YYYY")}
+                      {item.time ? ` at ${item.time}` : ""}
                     </Text>
                     {item.description ? (
-                      <Text style={styles.eventDescription}>
-                        {item.description}
-                      </Text>
+                      <Text style={styles.eventDescription}>{item.description}</Text>
                     ) : null}
                   </View>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.deleteButton}
-                    onPress={() => {
-                      Alert.alert(
-                        'Delete Event',
-                        'Are you sure you want to delete this event?',
-                        [
-                          { text: 'Cancel', style: 'cancel' },
-                          { 
-                            text: 'Delete', 
-                            onPress: () => deleteEvent(item.id), 
-                            style: 'destructive' 
-                          }
-                        ]
-                      );
-                    }}
+                    onPress={() => deleteEvent(item.id)}
                   >
                     <Ionicons name="trash-outline" size={20} color="#ff4444" />
                   </TouchableOpacity>
-                </Animated.View>
+                </TouchableOpacity>
               ))
             ) : (
               <View style={styles.emptyState}>
@@ -562,7 +572,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    maxHeight: SCREEN_HEIGHT * 0.45,
+    maxHeight: SCREEN_HEIGHT * 0.42, // Slightly reduced to ensure visibility
   },
   calendarStyle: {
     borderRadius: 20,
@@ -600,7 +610,7 @@ const styles = StyleSheet.create({
   eventsList: {
     flex: 1,
   },
-  eventCard: {
+  eventItem: {
     flexDirection: "row",
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
@@ -621,15 +631,10 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 4,
   },
-  eventTime: {
+  eventDate: {
     fontSize: 14,
     color: "#666",
     marginBottom: 2,
-  },
-  eventRelativeTime: {
-    fontSize: 12,
-    color: "#dd528d",
-    fontWeight: "500",
   },
   eventDescription: {
     fontSize: 14,

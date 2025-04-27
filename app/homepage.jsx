@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, ImageBackground, ActivityIndicator, Alert } from "react-native";
-import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View, Image, TouchableOpacity, ImageBackground, ActivityIndicator, Alert, ScrollView, Animated, Dimensions } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { hp, wp } from "../helpers/common";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,9 +13,34 @@ const HomePage = () => {
   const { user, userProfile, loading, updateUserProfile } = useAuth();
   const [events, setEvents] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [favoriteMemories, setFavoriteMemories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const memoryScrollRef = useRef(null);
+  
+  // Auto-scroll animation
+  useEffect(() => {
+    let scrollInterval;
+    
+    if (favoriteMemories.length > 1) {
+      let currentIndex = 0;
+      scrollInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % favoriteMemories.length;
+        memoryScrollRef.current?.scrollTo({
+          x: currentIndex * wp(45),
+          animated: true
+        });
+      }, 3000); // Change image every 3 seconds
+    }
+    
+    return () => {
+      if (scrollInterval) {
+        clearInterval(scrollInterval);
+      }
+    };
+  }, [favoriteMemories]);
 
-  // Fetch user's events and tasks
+  // Fetch user's events, tasks, and favorite memories
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
@@ -23,18 +48,25 @@ const HomePage = () => {
       try {
         setIsLoading(true);
         
-        // Fetch user's events
+        // Fetch user's data including memories
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          // Assuming events and tasks are stored in the user document
           setEvents(userData.events || []);
           setTasks(userData.tasks || []);
+          
+          // Filter memories to get only favorites
+          const memories = userData.memories || [];
+          const favorites = memories.filter(memory => 
+            memory && memory.isFavorite && (memory.images?.[0] || memory.image)
+          );
+          setFavoriteMemories(favorites);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        Alert.alert("Error", "Failed to load memories");
       } finally {
         setIsLoading(false);
       }
@@ -347,16 +379,113 @@ const HomePage = () => {
                 </ImageBackground>
               </TouchableOpacity>
               <TouchableOpacity 
-              onPress = {()=>router.push("memories")}
-              style={styles.square}>
-              <ImageBackground
-                  source={require("../assets/images/memories.png")} // Replace with the actual map image path
-                  style={styles.mapBackground}
-                  imageStyle={{ borderRadius: 35 }} // Ensures the image has rounded corners
-                  resizeMode="cover"
-                > 
-                <Text style={styles.nearestLoc}>Memories</Text>
-              </ImageBackground>
+                onPress={() => router.push("memories")}
+                style={styles.square}
+              >
+                {favoriteMemories.length > 0 ? (
+                  <View style={styles.memoriesContainer}>
+                    <Animated.ScrollView 
+                      ref={memoryScrollRef}
+                      horizontal 
+                      pagingEnabled
+                      showsHorizontalScrollIndicator={false}
+                      scrollEventThrottle={16}
+                      onScroll={Animated.event(
+                        [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                        { useNativeDriver: true }
+                      )}
+                      style={styles.memoriesScroll}
+                    >
+                      {favoriteMemories.map((memory, index) => {
+                        const imageUrl = memory.images?.[0] || memory.image;
+                        if (!imageUrl) return null;
+
+                        const inputRange = [
+                          (index - 1) * wp(45),
+                          index * wp(45),
+                          (index + 1) * wp(45),
+                        ];
+                        
+                        const scale = scrollX.interpolate({
+                          inputRange,
+                          outputRange: [0.9, 1, 0.9],
+                          extrapolate: 'clamp',
+                        });
+
+                        const opacity = scrollX.interpolate({
+                          inputRange,
+                          outputRange: [0.6, 1, 0.6],
+                          extrapolate: 'clamp',
+                        });
+
+                        return (
+                          <Animated.View
+                            key={index}
+                            style={[
+                              styles.memoryPreviewContainer,
+                              {
+                                transform: [{ scale }],
+                                opacity,
+                              },
+                            ]}
+                          >
+                            <Image
+                              source={{ uri: imageUrl }}
+                              style={styles.memoryPreview}
+                            />
+                            <LinearGradient
+                              colors={['transparent', 'rgba(0,0,0,0.7)']}
+                              style={styles.memoryGradient}
+                            >
+                              <Text style={styles.memoryTitle} numberOfLines={1}>
+                                {memory.title || 'Memory'}
+                              </Text>
+                            </LinearGradient>
+                          </Animated.View>
+                        );
+                      })}
+                    </Animated.ScrollView>
+                    <View style={styles.paginationDots}>
+                      {favoriteMemories.map((_, index) => {
+                        const inputRange = [
+                          (index - 1) * wp(45),
+                          index * wp(45),
+                          (index + 1) * wp(45),
+                        ];
+                        
+                        const scale = scrollX.interpolate({
+                          inputRange,
+                          outputRange: [0.8, 1.2, 0.8],
+                          extrapolate: 'clamp',
+                        });
+                        
+                        const opacity = scrollX.interpolate({
+                          inputRange,
+                          outputRange: [0.4, 1, 0.4],
+                          extrapolate: 'clamp',
+                        });
+                        
+                        return (
+                          <Animated.View
+                            key={index}
+                            style={[
+                              styles.paginationDot,
+                              { 
+                                opacity,
+                                transform: [{ scale }]
+                              }
+                            ]}
+                          />
+                        );
+                      })}
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.emptyMemoriesContainer}>
+                    <Text style={styles.nearestLoc}>Memories</Text>
+                    <Text style={styles.emptyMemoriesText}>Add some memories to favorites!</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             </View>
         </View>
@@ -595,5 +724,72 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fbae52',
+  },
+  memoriesContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 35,
+    overflow: 'hidden',
+  },
+  memoriesScroll: {
+    flex: 1,
+  },
+  memoryPreviewContainer: {
+    width: wp(45),
+    height: wp(45),
+    overflow: 'hidden',
+  },
+  memoryPreview: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  memoryGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 50,
+    justifyContent: 'flex-end',
+    paddingBottom: 10,
+    paddingHorizontal: 10,
+  },
+  memoryTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  paginationDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+  },
+  paginationDot: {
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    marginHorizontal: 4,
+  },
+  emptyMemoriesContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 35,
+  },
+  emptyMemoriesText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 10,
+    textAlign: 'center',
+    paddingHorizontal: 10,
   },
 });
