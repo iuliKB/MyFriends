@@ -21,6 +21,10 @@ export const theme ={
         extraBold: '800',
 
     },
+    gradients: {
+        background: ["#fbae52", "#dd528d", "#ff8c79"],
+        // ... other gradients
+    },
     radius: {
         xs: 10,
         sm: 12,

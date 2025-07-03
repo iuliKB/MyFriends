@@ -52,12 +52,12 @@ const MyAccount = () => {
         <View style={styles.widgetsForm}>
           <View style={styles.tabsContainer}>
             {[
-              { title: "Edit Profile", route: "editProfile" },
+              // { title: "Edit Profile", route: "editProfile" }, // Șters
               { title: "My Wishlist", route: "wishlist" },
               { title: "Change Password", route: "changePassword" },
-              { title: "Settings", route: "settings" },
+              // { title: "Settings", route: "settings" }, // Șters
               { title: "My Memories", route: "memories"},
-              { title: "Logout", route: null, isLogout: true }, // Added logout option
+              { title: "Logout", route: null, isLogout: true },
             ].map((tab, index) => (
               <TouchableOpacity
                 key={index}
@@ -90,7 +90,7 @@ const MyAccount = () => {
           <TouchableOpacity onPress={() => router.push("map")}>
             <Image
               source={require("../assets/icons/globe_icon.png")}
-              style={styles.globeIcon}
+              style={styles.globeIcon} // Ar trebui să fie styles.navIcon dacă arată similar cu celelalte
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("calendar")}>
@@ -122,111 +122,111 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: "35%",
-    borderBottomLeftRadius: wp(100),
-    borderBottomRightRadius: wp(100),
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
+    height: "35%", //
+    borderBottomLeftRadius: wp(100), //
+    borderBottomRightRadius: wp(100), //
+    justifyContent: "center", //
+    alignItems: "center", //
+    overflow: "hidden", //
   },
   ovalText: {
-    color: "#fff",
-    fontSize: hp(3.5),
-    fontWeight: "bold",
-    textAlign: "center",
+    color: "#fff", //
+    fontSize: hp(3.5), //
+    fontWeight: "bold", //
+    textAlign: "center", //
   },
   profileImageWrapper: {
-    width: wp(30),
-    height: wp(30),
-    borderRadius: wp(15),
-    overflow: "hidden",
-    borderWidth: 4,
-    borderColor: "#dd528d",
-    position: "absolute",
-    top: "25%",
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#eee",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    width: wp(30), //
+    height: wp(30), //
+    borderRadius: wp(15), //
+    overflow: "hidden", //
+    borderWidth: 4, //
+    borderColor: "#dd528d", //
+    position: "absolute", //
+    top: "25%", //
+    alignSelf: "center", //
+    justifyContent: "center", //
+    alignItems: "center", //
+    backgroundColor: "#eee", //
+    shadowColor: "#000", //
+    shadowOffset: { width: 0, height: 2 }, //
+    shadowOpacity: 0.2, //
+    shadowRadius: 5, //
+    elevation: 5, //
   },
   profileImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+    width: "100%", //
+    height: "100%", //
+    resizeMode: "cover", //
   },
   tabsContainer: {
-    position: "absolute",
-    top: hp(30),
-    left: wp(5),
-    right: wp(5),
+    position: "absolute", //
+    top: hp(30), //
+    left: wp(5), //
+    right: wp(5), //
   },
   tabButton: {
-    backgroundColor: "rgba(186, 220, 195, 0.8)",
-    paddingVertical: hp(2),
-    paddingHorizontal: wp(5),
-    borderRadius: 25,
-    marginBottom: hp(1.5),
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    backgroundColor: "rgba(186, 220, 195, 0.8)", //
+    paddingVertical: hp(2), //
+    paddingHorizontal: wp(5), //
+    borderRadius: 25, //
+    marginBottom: hp(1.5), //
+    elevation: 3, //
+    shadowColor: "#000", //
+    shadowOffset: { width: 0, height: 2 }, //
+    shadowOpacity: 0.1, //
+    shadowRadius: 5, //
   },
   logoutButton: {
-    backgroundColor: "rgba(255, 100, 100, 0.8)", // Different color for logout
+    backgroundColor: "rgba(255, 100, 100, 0.8)", //
   },
   tabText: {
-    fontSize: hp(2),
-    fontWeight: "600",
-    color: theme.colors.text,
-    textAlign: "center",
+    fontSize: hp(2), //
+    fontWeight: "600", //
+    color: theme.colors.text, //
+    textAlign: "center", //
   },
   logoutText: {
-    color: "#fff", // White text for better contrast
+    color: "#fff", //
   },
   widgetsForm: {
-    marginTop: hp(5),
-    paddingHorizontal: wp(4),
+    marginTop: hp(5), //
+    paddingHorizontal: wp(4), //
   },  
   bottomNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    height: hp(7),
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
-    borderRadius: 50,
-    position: "absolute",
-    bottom: hp(2.5),
-    width: "90%",
-    alignSelf: "center",
-    paddingHorizontal: wp(4),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
+    flexDirection: "row", //
+    justifyContent: "space-around", //
+    alignItems: "center", //
+    height: hp(7), //
+    backgroundColor: "rgba(255, 255, 255, 0.4)", //
+    borderRadius: 50, //
+    position: "absolute", //
+    bottom: hp(2.5), //
+    width: "90%", //
+    alignSelf: "center", //
+    paddingHorizontal: wp(4), //
+    shadowColor: "#000", //
+    shadowOffset: { width: 0, height: 2 }, //
+    shadowOpacity: 0.1, //
+    shadowRadius: 6, //
+    elevation: 5, //
   },
   navIcon: {
-    width: 28,
-    height: 28,
-    resizeMode: "contain",
+    width: 28, //
+    height: 28, //
+    resizeMode: "contain", //
   },
-  globeIcon: {
-    fontSize: 30,
-    color: "black",
+  globeIcon: { // Reține că acest stil este diferit de navIcon
+    fontSize: 30, //
+    color: "black", //
   },
   notificationBadge: {
-    position: "absolute",
-    top: -2,
-    right: -6,
-    width: 8,
-    height: 8,
-    backgroundColor: "red",
-    borderRadius: 4,
+    position: "absolute", //
+    top: -2, //
+    right: -6, //
+    width: 8, //
+    height: 8, //
+    backgroundColor: "red", //
+    borderRadius: 4, //
   },
 });

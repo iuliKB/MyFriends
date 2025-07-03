@@ -130,67 +130,69 @@ const TasksPage = () => {
     }
   };
 
-  const renderTask = (task) => (
-    <Animated.View 
-      style={[
-        styles.taskItem,
-        { 
-          borderLeftWidth: 4,
-          borderLeftColor: PRIORITIES[task.priority || 'MEDIUM'].color,
-          opacity: fadeAnim,
-          transform: [{
-            translateX: fadeAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [50, 0]
-            })
-          }]
-        }
-      ]}
+
+const renderTask = (task) => (
+  <Animated.View 
+    key={task.id} 
+    style={[
+      styles.taskItem,
+      { 
+        borderLeftWidth: 4,
+        borderLeftColor: PRIORITIES[task.priority || 'MEDIUM'].color,
+        opacity: fadeAnim,
+        transform: [{
+          translateX: fadeAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [50, 0]
+          })
+        }]
+      }
+    ]}
+  >
+    <TouchableOpacity 
+      style={[styles.checkbox, task.completed && styles.checkboxChecked]}
+      onPress={() => toggleTaskCompletion(task.id)}
     >
-      <TouchableOpacity 
-        style={[styles.checkbox, task.completed && styles.checkboxChecked]}
-        onPress={() => toggleTaskCompletion(task.id)}
-      >
-        {task.completed && (
-          <Ionicons name="checkmark" size={16} color="#fff" />
-        )}
-      </TouchableOpacity>
-      <View style={styles.taskContent}>
-        <Text style={[
-          styles.taskTitle, 
-          task.completed && styles.taskTitleCompleted
-        ]}>
-          {task.title}
-        </Text>
-        <View style={styles.taskMeta}>
-          <View style={[styles.priorityBadge, { backgroundColor: PRIORITIES[task.priority || 'MEDIUM'].color + '20' }]}>
-            <Text style={[styles.priorityBadgeText, { color: PRIORITIES[task.priority || 'MEDIUM'].color }]}>
-              {PRIORITIES[task.priority || 'MEDIUM'].label}
-            </Text>
-          </View>
-          <Text style={styles.taskDate}>
-            {new Date(task.createdAt?.toDate?.() || task.createdAt).toLocaleDateString()}
+      {task.completed && (
+        <Ionicons name="checkmark" size={16} color="#fff" />
+      )}
+    </TouchableOpacity>
+    <View style={styles.taskContent}>
+      <Text style={[
+        styles.taskTitle, 
+        task.completed && styles.taskTitleCompleted
+      ]}>
+        {task.title}
+      </Text>
+      <View style={styles.taskMeta}>
+        <View style={[styles.priorityBadge, { backgroundColor: PRIORITIES[task.priority || 'MEDIUM'].color + '20' }]}>
+          <Text style={[styles.priorityBadgeText, { color: PRIORITIES[task.priority || 'MEDIUM'].color }]}>
+            {PRIORITIES[task.priority || 'MEDIUM'].label}
           </Text>
         </View>
+        <Text style={styles.taskDate}>
+          {/* Ensure createdAt is a Date object or a structure that toDate() can be called on if it's a Firestore Timestamp */}
+          {new Date(task.createdAt?.toDate ? task.createdAt.toDate() : task.createdAt).toLocaleDateString()}
+        </Text>
       </View>
-      <TouchableOpacity 
-        style={styles.deleteButton}
-        onPress={() => {
-          Alert.alert(
-            'Delete Task',
-            'Are you sure you want to delete this task?',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Delete', onPress: () => deleteTask(task.id), style: 'destructive' }
-            ]
-          );
-        }}
-      >
-        <Ionicons name="trash-outline" size={20} color="#ff4444" />
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
+    </View>
+    <TouchableOpacity 
+      style={styles.deleteButton}
+      onPress={() => {
+        Alert.alert(
+          'Delete Task',
+          'Are you sure you want to delete this task?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', onPress: () => deleteTask(task.id), style: 'destructive' }
+          ]
+        );
+      }}
+    >
+      <Ionicons name="trash-outline" size={20} color="#ff4444" />
+    </TouchableOpacity>
+  </Animated.View>
+);
   const renderPrioritySection = (priority) => {
     const priorityTasks = tasks.filter(task => (task.priority || 'MEDIUM') === priority);
     if (priorityTasks.length === 0) return null;

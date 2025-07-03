@@ -35,9 +35,13 @@ const Memories = () => {
 
   useEffect(() => {
     fetchMemories();
-  }, []);
+  }, [user]); // Added user to dependency array for fetchMemories
 
   const fetchMemories = async () => {
+    if (!user) { // Ensure user is available
+        setLoading(false);
+        return;
+    }
     try {
       setLoading(true);
       const userRef = doc(firestore, 'users', user.uid);
@@ -46,7 +50,7 @@ const Memories = () => {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const sortedMemories = (userData.memories || []).sort((a, b) => 
-          moment(b.date).valueOf() - moment(a.date).valueOf()
+          moment(b.createdAt || b.date).valueOf() - moment(a.createdAt || a.date).valueOf() // Sort by creation time or date
         );
         setMemories(sortedMemories);
       }
@@ -73,10 +77,10 @@ const Memories = () => {
         aspect: [4, 3],
         quality: 0.8,
         allowsMultipleSelection: true,
-        selectionLimit: 10,
+        selectionLimit: 10, // Max 10 images
       });
       
-      if (!result.canceled) {
+      if (!result.canceled && result.assets) { // Check for result.assets
         setNewMemoryImages([...newMemoryImages, ...result.assets.map(asset => asset.uri)]);
       }
     } catch (error) {
@@ -100,7 +104,7 @@ const Memories = () => {
       
       const userRef = doc(firestore, 'users', user.uid);
       await updateDoc(userRef, { memories: updatedMemories });
-      setMemories(updatedMemories);
+      setMemories(updatedMemories); // Keep local state sorted as is, or re-sort if needed
     } catch (error) {
       console.error('Error toggling favorite:', error);
       Alert.alert('Error', 'Failed to update favorite');
@@ -125,20 +129,20 @@ const Memories = () => {
         id: Date.now().toString(),
         title: newMemoryTitle.trim(),
         description: newMemoryDescription.trim(),
-        date: new Date().getFullYear().toString(),
+        date: new Date().getFullYear().toString(), 
         images: newMemoryImages,
         isFavorite: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString() 
       };
 
       await updateDoc(userRef, {
         memories: arrayUnion(newMemory)
       });
 
-      const updatedMemories = [...memories, newMemory].sort((a, b) => 
-        moment(b.date).valueOf() - moment(a.date).valueOf()
+      const anUpdatedListOfMemories = [...memories, newMemory].sort((a, b) => 
+         moment(b.createdAt || b.date).valueOf() - moment(a.createdAt || a.date).valueOf()
       );
-      setMemories(updatedMemories);
+      setMemories(anUpdatedListOfMemories);
       
       setNewMemoryTitle('');
       setNewMemoryDescription('');
@@ -151,13 +155,32 @@ const Memories = () => {
     }
   };
 
-  const renderMemoryCard = ({ item }) => {
-    if (selectedTab === "favorites" && !item.isFavorite) {
-      return null;
+  // Function to delete a memory
+  const deleteMemory = async (memoryIdToDelete) => {
+    try {
+      const updatedMemoriesArray = memories.filter(memory => memory.id !== memoryIdToDelete);
+
+      const userRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userRef, { memories: updatedMemoriesArray });
+
+      // Update local state (already sorted by filter)
+      setMemories(updatedMemoriesArray); 
+      Alert.alert('Success', 'Memory deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting memory:', error);
+      Alert.alert('Error', 'Failed to delete memory. Please try again.');
     }
+  };
+
+  const renderMemoryCard = ({ item }) => {
+    // This filtering is now done before passing to FlatList
+    // if (selectedTab === "favorites" && !item.isFavorite) {
+    //   return null;
+    // }
 
     return (
       <Animated.View 
+        key={item.id}
         style={[
           styles.memoryCard,
           { 
@@ -176,9 +199,9 @@ const Memories = () => {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
         >
-          {(item.images || [item.image]).map((img, index) => (
+          {(item.images && Array.isArray(item.images) ? item.images : (item.image ? [item.image] : [])).map((img, index) => (
             <Image 
-              key={index}
+              key={index} 
               source={{ uri: img }}
               style={styles.memoryImage}
             />
@@ -198,7 +221,27 @@ const Memories = () => {
           <Ionicons 
             name={item.isFavorite ? "heart" : "heart-outline"} 
             size={24} 
-            color={item.isFavorite ? "#ff4444" : "#ffffff"} 
+            color={item.isFavorite ? theme.colors.primary : "#ffffff"} // Use theme color for favorite
+          />
+        </TouchableOpacity>
+        {/* Delete Button */}
+        <TouchableOpacity
+          style={styles.deleteMemoryButton}
+          onPress={() => {
+            Alert.alert(
+              "Delete Memory",
+              "Are you sure you want to permanently delete this memory?",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", onPress: () => deleteMemory(item.id), style: "destructive" }
+              ]
+            );
+          }}
+        >
+          <Ionicons 
+            name="trash-outline"
+            size={22} // Slightly smaller to differentiate
+            color="#ffffff" 
           />
         </TouchableOpacity>
       </Animated.View>
@@ -218,21 +261,25 @@ const Memories = () => {
     );
   }
 
+  const filteredMemories = memories.filter(item => {
+    if (selectedTab === "favorites") {
+      return item.isFavorite;
+    }
+    return true; 
+  });
+
   return (
     <LinearGradient
       colors={["#fbae52", "#dd528d", "#ff8c79"]}
       style={styles.gradientBackground}
     >
       <ScreenWrapper>
-        {/* Upper Oval Section */}
         <LinearGradient
           colors={["#73d1d3", "#badcc3", "#dba380"]}
           style={styles.fullScreenOval}
         >
           <Text style={styles.ovalText}>Memories</Text>
-          
-          {/* Segmented Control */}
-          <View style={[styles.segmentedControl, { marginTop: hp(2) }]}>
+          <View style={[styles.segmentedControl]}>
             <TouchableOpacity 
               style={[
                 styles.segmentButton,
@@ -260,31 +307,30 @@ const Memories = () => {
           </View>
         </LinearGradient>
 
-        {/* Main Content Container */}
         <View style={styles.mainContainer}>
-          {/* Memories List */}
-          <ScrollView 
-            style={styles.memoriesList}
-            showsVerticalScrollIndicator={false}
-          >
-            {memories.length > 0 ? (
-              memories.map((item) => renderMemoryCard({ item }))
-            ) : (
-              <View style={styles.emptyState}>
-                <Ionicons 
-                  name="images-outline" 
-                  size={60} 
-                  color="rgba(255, 255, 255, 0.5)" 
-                />
-                <Text style={[styles.emptyStateText, { color: '#fff' }]}>
-                  No memories yet. Add your first memory!
-                </Text>
-              </View>
-            )}
-          </ScrollView>
+          {filteredMemories.length > 0 ? (
+             <FlatList
+             data={filteredMemories}
+             renderItem={renderMemoryCard}
+             keyExtractor={(item) => item.id}
+             style={styles.memoriesList}
+             showsVerticalScrollIndicator={false}
+             contentContainerStyle={{ paddingBottom: hp(2) }} 
+           />
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons 
+                name="images-outline" 
+                size={60} 
+                color="rgba(255, 255, 255, 0.5)" 
+              />
+              <Text style={[styles.emptyStateText, { color: '#fff' }]}>
+                {selectedTab === "favorites" ? "No favorite memories yet." : "No memories yet. Add your first memory!"}
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Add Button */}
         <TouchableOpacity 
           style={styles.addButton}
           onPress={() => setIsAddModalVisible(true)}
@@ -292,7 +338,6 @@ const Memories = () => {
           <Ionicons name="add" size={30} color="#fff" />
         </TouchableOpacity>
 
-        {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
           <TouchableOpacity onPress={() => router.push("homepage")}>
             <Image
@@ -329,7 +374,6 @@ const Memories = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Add Memory Modal */}
         <Modal
           visible={isAddModalVisible}
           transparent={true}
@@ -348,26 +392,23 @@ const Memories = () => {
                   }}
                   style={styles.modalCloseButton}
                 >
-                  <Ionicons name="close" size={24} color="#000" />
+                  <Ionicons name="close" size={24} color="#333" />
                 </TouchableOpacity>
               </View>
 
-              {/* Images Section */}
               <ScrollView 
                 horizontal 
                 style={styles.imagePickerContainer}
                 showsHorizontalScrollIndicator={false}
               >
-                {/* Add Image Button */}
                 <TouchableOpacity 
                   style={styles.addImageButton}
                   onPress={pickImages}
                 >
-                  <Ionicons name="camera-outline" size={40} color="#666" />
+                  <Ionicons name="camera-outline" size={40} color="#555" />
                   <Text style={styles.addImageText}>Add Photos</Text>
                 </TouchableOpacity>
 
-                {/* Selected Images */}
                 {newMemoryImages.map((uri, index) => (
                   <View key={index} style={styles.selectedImageContainer}>
                     <Image 
@@ -431,18 +472,20 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: "25%",
+    height: "25%", 
     borderBottomLeftRadius: wp(100),
     borderBottomRightRadius: wp(100),
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
+    paddingTop: hp(2), 
   },
   ovalText: {
     color: "#fff",
     fontSize: hp(3.5),
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: hp(1), 
   },
   loadingContainer: {
     flex: 1,
@@ -463,7 +506,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   segmentButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.35)', 
   },
   segmentText: {
     fontSize: 16,
@@ -472,35 +515,35 @@ const styles = StyleSheet.create({
   },
   segmentTextActive: {
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '600', 
     opacity: 1,
   },
   mainContainer: {
     flex: 1,
-    marginTop: hp(15),
-    marginBottom: hp(12), // Space for bottom navigation
+    marginTop: hp(20), 
+    marginBottom: hp(10), 
   },
   memoriesList: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: wp(4), 
   },
   memoryCard: {
     height: hp(50),
-    marginBottom: 16,
+    marginBottom: hp(2.5), 
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)', 
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4, 
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3, 
+    shadowRadius: 5, 
+    elevation: 6, 
   },
   memoryImage: {
-    width: SCREEN_WIDTH - 32,
+    width: SCREEN_WIDTH - (wp(4) * 2), 
     height: '100%',
     resizeMode: 'cover',
   },
@@ -519,11 +562,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)', 
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   memoryYear: {
     fontSize: 16,
     color: '#fff',
-    opacity: 0.8,
+    opacity: 0.9, 
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   favoriteButton: {
     position: 'absolute',
@@ -532,9 +581,22 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)', 
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1, // Ensure it's clickable
+  },
+  deleteMemoryButton: { // New Style
+    position: 'absolute',
+    top: 16,
+    left: 16, 
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1, // Ensure it's clickable
   },
   bottomNavigation: {
     flexDirection: "row",
@@ -560,7 +622,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   globeIcon: {
-    width: 28,
+    width: 28, 
     height: 28,
     resizeMode: "contain",
   },
@@ -575,12 +637,12 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    right: 16,
-    bottom: hp(11),
+    right: wp(5), 
+    bottom: hp(11), 
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: theme.colors.primary || '#dd528d', 
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "#000",
@@ -588,57 +650,61 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3, 
+    shadowRadius: 4,
+    elevation: 6,
+    zIndex: 10, 
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-end', 
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 16,
-    paddingBottom: 32,
+    padding: wp(5), 
+    paddingBottom: hp(4), 
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: hp(2.5), 
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: hp(2.5), 
     fontWeight: '600',
+    color: '#333', 
   },
   modalCloseButton: {
-    padding: 8,
+    padding: wp(2), 
   },
   imagePickerContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: hp(2.5),
   },
   addImageButton: {
-    width: hp(15),
-    height: hp(15),
+    width: hp(12), 
+    height: hp(12),
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(0,0,0,0.05)', 
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: wp(3),
+    borderWidth: 1, 
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   addImageText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666',
+    marginTop: hp(1),
+    fontSize: hp(1.8),
+    color: '#555', 
   },
   selectedImageContainer: {
-    width: hp(15),
-    height: hp(15),
-    marginRight: 10,
+    width: hp(12),
+    height: hp(12),
+    marginRight: wp(3),
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -649,49 +715,52 @@ const styles = StyleSheet.create({
   },
   removeImageButton: {
     position: 'absolute',
-    top: 5,
-    right: 5,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    top: wp(1),
+    right: wp(1),
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
     borderRadius: 12,
+    padding: wp(0.5),
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 10, 
+    padding: hp(1.8), 
+    fontSize: hp(2),
+    marginBottom: hp(2),
+    color: '#333',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   textArea: {
-    height: 100,
+    height: hp(12), 
     textAlignVertical: 'top',
   },
   createButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: theme.colors.primary || '#dd528d', 
+    borderRadius: 10,
+    padding: hp(2),
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: hp(2),
   },
   createButtonDisabled: {
     backgroundColor: '#ccc',
   },
   createButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: hp(2.2),
     fontWeight: '600',
   },
   emptyState: {
+    flex: 1, 
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: hp(20),
+    paddingTop: hp(15), 
+    paddingBottom: hp(5),
   },
   emptyStateText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: hp(2), 
+    color: 'rgba(255, 255, 255, 0.8)', 
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: hp(2),
   },
 });
-
-
-

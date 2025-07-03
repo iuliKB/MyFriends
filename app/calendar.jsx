@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  FlatList, 
-  Image, 
-  Modal, 
-  TextInput, 
-  Alert, 
-  ActivityIndicator, 
-  ScrollView, 
-  Animated, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  Modal,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  Animated,
   StatusBar,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CalendarList, Calendar } from "react-native-calendars";
@@ -25,15 +25,14 @@ import ScreenWrapper from "../components/ScreenWrapper";
 import { useAuth } from "../AuthContext";
 import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 import { firestore } from "../firebaseConfig";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 const CalendarScreen = () => {
   const { user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
-  const [currentMonth, setCurrentMonth] = useState(moment().format("MMMM YYYY"));
-  const [selectedMonth, setSelectedMonth] = useState(moment());
+  const [selectedDate, setSelectedDate] = useState(moment().format("YYYY-MM-DD"));
+  const [currentMonth, setCurrentMonth] = useState(moment().format("MMMM YYYY")); // Initialize currentMonth
   const [events, setEvents] = useState([]);
   const [markedDates, setMarkedDates] = useState({});
   const [loading, setLoading] = useState(true);
@@ -72,10 +71,10 @@ const CalendarScreen = () => {
   // Update marked dates whenever events change
   useEffect(() => {
     const marks = {};
-    events.forEach(event => {
+    events.forEach((event) => {
       marks[event.date] = {
         marked: true,
-        dotColor: '#dd528d'
+        dotColor: "#dd528d",
       };
     });
     // Add selected date marker
@@ -100,30 +99,23 @@ const CalendarScreen = () => {
     };
   }, []);
 
-  // Function to handle month navigation
-  const handleMonthChange = (direction) => {
-    const newMonth = selectedMonth.clone().add(direction, 'month');
-    setSelectedMonth(newMonth);
-    setCurrentMonth(newMonth.format("MMMM YYYY"));
-  };
-
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const userRef = doc(firestore, 'users', user.uid);
+      const userRef = doc(firestore, "users", user.uid);
       const userDoc = await getDoc(userRef);
-      
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
         // Sort events by date
-        const sortedEvents = (userData.events || []).sort((a, b) => 
-          moment(a.date).valueOf() - moment(b.date).valueOf()
+        const sortedEvents = (userData.events || []).sort(
+          (a, b) => moment(a.date).valueOf() - moment(b.date).valueOf()
         );
         setEvents(sortedEvents);
       }
     } catch (error) {
-      console.error('Error fetching events:', error);
-      Alert.alert('Error', 'Failed to load events');
+      console.error("Error fetching events:", error);
+      Alert.alert("Error", "Failed to load events");
     } finally {
       setLoading(false);
     }
@@ -131,93 +123,93 @@ const CalendarScreen = () => {
 
   const addEvent = async () => {
     if (!newEventTitle.trim()) {
-      Alert.alert('Error', 'Please enter an event title');
+      Alert.alert("Error", "Please enter an event title");
       return;
     }
 
     if (!newEventDate) {
-      Alert.alert('Error', 'Please select a date');
+      Alert.alert("Error", "Please select a date");
       return;
     }
 
     // Validate date is not in the past
-    if (moment(newEventDate).startOf('day').isBefore(moment().startOf('day'))) {
-      Alert.alert('Error', 'Cannot create events in the past');
+    if (moment(newEventDate).startOf("day").isBefore(moment().startOf("day"))) {
+      Alert.alert("Error", "Cannot create events in the past");
       return;
     }
 
     try {
-      const userRef = doc(firestore, 'users', user.uid);
-      
+      const userRef = doc(firestore, "users", user.uid);
+
       const newEvent = {
         id: Date.now().toString(),
         title: newEventTitle.trim(),
         date: newEventDate,
         time: newEventTime.trim(),
         description: newEventDescription.trim(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       await updateDoc(userRef, {
-        events: arrayUnion(newEvent)
+        events: arrayUnion(newEvent),
       });
 
       // Update local state with sorted events
-      const updatedEvents = [...events, newEvent].sort((a, b) => 
-        moment(a.date).valueOf() - moment(b.date).valueOf()
+      const updatedEvents = [...events, newEvent].sort(
+        (a, b) => moment(a.date).valueOf() - moment(b.date).valueOf()
       );
       setEvents(updatedEvents);
-      
-      setNewEventTitle('');
-      setNewEventDate('');
-      setNewEventTime('');
-      setNewEventDescription('');
+
+      setNewEventTitle("");
+      setNewEventDate("");
+      setNewEventTime("");
+      setNewEventDescription("");
       setIsAddModalVisible(false);
-      Alert.alert('Success', 'Event added successfully!');
+      Alert.alert("Success", "Event added successfully!");
     } catch (error) {
-      console.error('Error adding event:', error);
-      Alert.alert('Error', 'Failed to add event');
+      console.error("Error adding event:", error);
+      Alert.alert("Error", "Failed to add event");
     }
   };
 
   const deleteEvent = async (eventId) => {
     try {
-      const updatedEvents = events.filter(event => event.id !== eventId);
-      const userRef = doc(firestore, 'users', user.uid);
+      const updatedEvents = events.filter((event) => event.id !== eventId);
+      const userRef = doc(firestore, "users", user.uid);
       await updateDoc(userRef, { events: updatedEvents });
       setEvents(updatedEvents);
-      Alert.alert('Success', 'Event deleted successfully!');
+      Alert.alert("Success", "Event deleted successfully!");
     } catch (error) {
-      console.error('Error deleting event:', error);
-      Alert.alert('Error', 'Failed to delete event');
+      console.error("Error deleting event:", error);
+      Alert.alert("Error", "Failed to delete event");
     }
   };
 
   const formatEventDate = (dateString) => {
     const eventDate = moment(dateString);
-    const today = moment().startOf('day');
-    const tomorrow = moment().add(1, 'days').startOf('day');
-    
-    if (eventDate.isSame(today, 'day')) {
-      return 'Today';
-    } else if (eventDate.isSame(tomorrow, 'day')) {
-      return 'Tomorrow';
+    const today = moment().startOf("day");
+    const tomorrow = moment().add(1, "days").startOf("day");
+
+    if (eventDate.isSame(today, "day")) {
+      return "Today";
+    } else if (eventDate.isSame(tomorrow, "day")) {
+      return "Tomorrow";
     } else {
-      return eventDate.format('MMM D, YYYY');
+      return eventDate.format("MMM D, YYYY");
     }
   };
 
   const getRelativeTime = (dateString) => {
     const eventDate = moment(dateString);
     const now = moment();
-    const diffDays = eventDate.diff(now, 'days');
-    
+    const diffDays = eventDate.diff(now, "days");
+
     if (diffDays < 0) {
-      return 'Past';
+      return "Past";
     } else if (diffDays === 0) {
-      return 'Today';
+      return "Today";
     } else if (diffDays === 1) {
-      return 'Tomorrow';
+      return "Tomorrow";
     } else if (diffDays < 7) {
       return `In ${diffDays} days`;
     } else {
@@ -229,7 +221,7 @@ const CalendarScreen = () => {
   const renderCalendarView = () => {
     return (
       <Calendar
-        current={selectedMonth.format('YYYY-MM-DD')}
+        current={moment().format("YYYY-MM-DD")} // Use current date for initial view
         markedDates={markedDates}
         theme={{
           calendarBackground: "rgba(255, 255, 255, 0.9)",
@@ -240,17 +232,20 @@ const CalendarScreen = () => {
           textDayFontWeight: "500",
           textMonthFontWeight: "bold",
           textDayHeaderFontWeight: "500",
-          dotColor: '#dd528d',
-          selectedDotColor: '#ffffff',
-          'stylesheet.calendar.header': {
-            dayTextAtIndex0: { color: '#666' },
-            dayTextAtIndex6: { color: '#666' },
-          }
+          dotColor: "#dd528d",
+          selectedDotColor: "#ffffff",
+          "stylesheet.calendar.header": {
+            dayTextAtIndex0: { color: "#666" },
+            dayTextAtIndex6: { color: "#666" },
+          },
         }}
         onDayPress={(day) => {
           setSelectedDate(day.dateString);
           setNewEventDate(day.dateString);
         }}
+        onMonthChange={(date) => {
+          setCurrentMonth(date.month);
+        }} // Update currentMonth
         enableSwipeMonths={true}
         style={styles.calendarStyle}
       />
@@ -277,10 +272,10 @@ const CalendarScreen = () => {
           colors={["#73d1d3", "#badcc3", "#dba380"]}
           style={styles.backgroundGradient}
         />
-        
+
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButtonContainer}
             onPress={() => router.back()}
           >
@@ -290,33 +285,14 @@ const CalendarScreen = () => {
           <View style={styles.headerPlaceholder} />
         </View>
 
-        {/* Month Navigation */}
-        <View style={styles.monthNavigation}>
-          <TouchableOpacity 
-            onPress={() => handleMonthChange(-1)} 
-            style={styles.arrowButton}
-          >
-            <Ionicons name="chevron-back" size={24} color="#dd528d" />
-          </TouchableOpacity>
-          <Text style={styles.currentMonth}>{currentMonth}</Text>
-          <TouchableOpacity 
-            onPress={() => handleMonthChange(1)} 
-            style={styles.arrowButton}
-          >
-            <Ionicons name="chevron-forward" size={24} color="#dd528d" />
-          </TouchableOpacity>
-        </View>
-
         {/* Calendar View */}
-        <View style={styles.calendarContainer}>
-          {renderCalendarView()}
-        </View>
+        <View style={styles.calendarContainer}>{renderCalendarView()}</View>
 
         {/* Events List */}
         <View style={styles.eventsContainer}>
           <View style={styles.eventsHeader}>
             <Text style={styles.eventsTitle}>Upcoming Events</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addEventButton}
               onPress={() => setIsAddModalVisible(true)}
             >
@@ -324,7 +300,7 @@ const CalendarScreen = () => {
               <Text style={styles.addEventText}>Add Event</Text>
             </TouchableOpacity>
           </View>
-          
+
           <ScrollView style={styles.eventsList}>
             {events.length > 0 ? (
               events.map((item) => (
@@ -355,10 +331,10 @@ const CalendarScreen = () => {
               ))
             ) : (
               <View style={styles.emptyState}>
-                <Ionicons 
-                  name="calendar-outline" 
-                  size={60} 
-                  color="rgba(0, 0, 0, 0.2)" 
+                <Ionicons
+                  name="calendar-outline"
+                  size={60}
+                  color="rgba(0, 0, 0, 0.2)"
                 />
                 <Text style={styles.emptyStateText}>
                   No events yet. Add your first event!
@@ -375,36 +351,38 @@ const CalendarScreen = () => {
           animationType="fade"
         >
           <View style={styles.modalContainer}>
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.modalContent,
                 {
                   opacity: modalAnim,
-                  transform: [{
-                    translateY: modalAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [50, 0]
-                    })
-                  }]
-                }
+                  transform: [
+                    {
+                      translateY: modalAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0],
+                      }),
+                    },
+                  ],
+                },
               ]}
             >
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Add New Event</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.modalCloseButton}
                   onPress={() => {
                     setIsAddModalVisible(false);
-                    setNewEventTitle('');
-                    setNewEventDate('');
-                    setNewEventTime('');
-                    setNewEventDescription('');
+                    setNewEventTitle("");
+                    setNewEventDate("");
+                    setNewEventTime("");
+                    setNewEventDescription("");
                   }}
                 >
                   <Ionicons name="close" size={24} color="#666" />
                 </TouchableOpacity>
               </View>
-              
+
               <ScrollView style={styles.modalScroll}>
                 <TextInput
                   style={styles.input}
@@ -417,7 +395,9 @@ const CalendarScreen = () => {
                 <Text style={styles.inputLabel}>Date</Text>
                 <View style={styles.dateTimeContainer}>
                   <Text style={styles.selectedDate}>
-                    {newEventDate ? formatEventDate(newEventDate) : 'Select a date from calendar'}
+                    {newEventDate
+                      ? formatEventDate(newEventDate)
+                      : "Select a date from calendar"}
                   </Text>
                 </View>
 
@@ -441,10 +421,11 @@ const CalendarScreen = () => {
                   numberOfLines={4}
                 />
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
                     styles.createEventButton,
-                    (!newEventTitle.trim() || !newEventDate) && styles.createEventButtonDisabled
+                    (!newEventTitle.trim() || !newEventDate) &&
+                      styles.createEventButtonDisabled,
                   ]}
                   onPress={addEvent}
                   disabled={!newEventTitle.trim() || !newEventDate}
@@ -505,9 +486,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fbae52',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fbae52",
   },
   backgroundGradient: {
     position: "absolute",

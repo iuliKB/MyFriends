@@ -1,54 +1,95 @@
-import React, { useState } from "react";
-import { StyleSheet,View,Image,Text,TouchableOpacity,FlatList,TextInput} from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+} from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { hp, wp } from "../helpers/common";
 import { theme } from "../constants/theme";
 
-const Wishlist = () => {
-  // State for wishlist items
-  const [wishlistItems, setWishlistItems] = useState([
-    {
-      id: "1",
-      title: "New Camera",
-      description: "A DSLR camera for professional photography.",
-      image: require("../assets/images/cake.jpg"),
-    },
-    {
-      id: "2",
-      title: "Gaming Console",
-      description: "The latest console for endless gaming.",
-      image: require("../assets/images/cake.jpg"),
-    },
-  ]);
+// Firebase
+import { firestore, auth } from '../firebaseConfig';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 
-  // State for new item inputs
+const Wishlist = () => {
+  const [wishlistItems, setWishlistItems] = useState([]);
   const [newItem, setNewItem] = useState({ title: "", description: "" });
 
-  // Add a new item to the wishlist
-  const handleAddItem = () => {
-    if (newItem.title && newItem.description) {
-      const newItemData = {
-        id: Date.now().toString(), // Unique ID based on timestamp
-        title: newItem.title,
-        description: newItem.description,
-        image: require("../assets/images/cake.jpg"), // Default image
-      };
-      setWishlistItems((prevItems) => [...prevItems, newItemData]);
-      setNewItem({ title: "", description: "" }); // Clear input fields
+  const getImage = (name) => {
+    switch (name) {
+      case "cake.jpg":
+        return require("../assets/images/cake.jpg");
+      default:
+        return require("../assets/images/cake.jpg");
     }
   };
 
-  // Remove an item from the wishlist
-  const handleRemoveItem = (id) => {
-    setWishlistItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  // Real-time listener for Firestore wishlist
+  useEffect(() => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const q = query(
+      collection(firestore, "wishlist"),
+      where("userId", "==", currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setWishlistItems(items);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Add new item to Firestore
+  const handleAddItem = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !newItem.title || !newItem.description) return;
+
+    try {
+      await addDoc(collection(firestore, "wishlist"), {
+        title: newItem.title,
+        description: newItem.description,
+        image: "cake.jpg",
+        userId: currentUser.uid,
+      });
+      setNewItem({ title: "", description: "" });
+    } catch (error) {
+      console.error("Error adding item: ", error);
+    }
   };
 
-  // Render a single wishlist item
+  // Delete item from Firestore
+  const handleRemoveItem = async (id) => {
+    try {
+      await deleteDoc(doc(firestore, "wishlist", id));
+    } catch (error) {
+      console.error("Error removing item: ", error);
+    }
+  };
+
   const renderWishlistItem = ({ item }) => (
     <View style={styles.wishlistItem}>
-      <Image source={item.image} style={styles.itemImage} />
+      <Image source={getImage(item.image)} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemDescription}>{item.description}</Text>
@@ -68,7 +109,6 @@ const Wishlist = () => {
       style={styles.gradientBackground}
     >
       <ScreenWrapper>
-        {/* Upper Oval Section */}
         <LinearGradient
           colors={["#73d1d3", "#badcc3", "#dba380"]}
           style={styles.fullScreenOval}
@@ -76,11 +116,10 @@ const Wishlist = () => {
           <Text style={styles.ovalText}>My WishList</Text>
         </LinearGradient>
 
-        {/* Add New Item */}
         <View style={styles.addItemContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Item Ttitle"
+            placeholder="Item Title"
             placeholderTextColor="black"
             value={newItem.title}
             onChangeText={(text) => setNewItem({ ...newItem, title: text })}
@@ -99,7 +138,6 @@ const Wishlist = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Wishlist Items */}
         <FlatList
           data={wishlistItems}
           renderItem={renderWishlistItem}
@@ -107,7 +145,6 @@ const Wishlist = () => {
           contentContainerStyle={styles.listContainer}
         />
 
-        {/* Bottom Navigation */}
         <View style={styles.bottomNavigation}>
           <TouchableOpacity onPress={() => router.push("homepage")}>
             <Image
@@ -148,8 +185,6 @@ const Wishlist = () => {
   );
 };
 
-export default Wishlist;
-
 const styles = StyleSheet.create({
   gradientBackground: {
     flex: 1,
@@ -176,7 +211,6 @@ const styles = StyleSheet.create({
     marginTop: hp(15),
     paddingHorizontal: wp(5),
     marginBottom: hp(2),
-    
   },
   input: {
     backgroundColor: "rgba(255, 255, 255, 0.7)",
@@ -220,7 +254,6 @@ const styles = StyleSheet.create({
   },
   itemDetails: {
     flex: 1,
-
   },
   itemTitle: {
     fontSize: hp(2.2),
@@ -275,7 +308,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   globeIcon: {
-    fontSize: 30, // Larger size for the globe icon
+    fontSize: 30,
     color: "black",
   },
 });
+
+export default Wishlist;
